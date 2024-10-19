@@ -365,22 +365,24 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Raw response:', responseText);
 
             // Check if response is JSON and parse it
-            const data = JSON.parse(responseText);
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('Failed to parse response as JSON:', e);
+                alert('Error processing payment: Invalid response from the server.');
+                return;
+            }
 
-            if (response.ok) {
-                // Redirect to payment URL if successful
+            // Log the entire response data for debugging
+            console.log('Response data:', data);
+
+            if (response.ok && data.payment_url) {
+                // Redirect to the NOWPayments payment page
                 window.location.href = data.payment_url;
-
-                // You can add a listener for the successful return and redirect to a thank-you page
-                // This could happen after returning from the NOWPayments gateway
-                // Example:
-                if (data.payment_status === 'waiting') {
-                    // Redirect to "Thank You" page after payment success
-                    window.location.href = '/thank-you.html'; // Change this URL to your thank-you page
-                }
             } else {
-                console.error('Error processing payment:', data.error);
-                alert('Error: ' + data.error);
+                console.error('Error processing payment:', data.error || 'No payment URL returned.');
+                alert('Error: ' + (data.error || 'Unexpected error occurred.'));
             }
         } catch (error) {
             console.error('Error processing payment:', error);
