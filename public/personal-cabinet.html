@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Cabinet</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Top Bar with Logout Button -->
+    <header>
+        <nav class="navbar">
+            <!-- Center Section: App Icon and AIcontrib logo -->
+            <div class="center-container">
+                <div class="header-left">
+                    <img src="/home/jack/Desktop/website/photo/app_icon.png" alt="App Icon" class="app-icon">
+                </div>
+                <div class="logo">
+                    <h1>AIcontrib</h1>
+                </div>
+            </div>
+
+            <!-- Right Side: Logout Button -->
+            <div class="logout-container">
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Left Side Menu -->
+        <aside class="side-menu">
+            <button class="menu-item active" onclick="switchSection('account')">Account</button>
+            <button class="menu-item" onclick="switchSection('buy-soft')">Buy the Software</button>
+            <button class="menu-item" onclick="switchSection('download')">Download</button>
+            <button class="menu-item" onclick="switchSection('exchange')">Exchange</button>
+            <button class="menu-item" onclick="switchSection('send')">Send Crypto</button>
+            <button class="menu-item" onclick="switchSection('settings')">Settings</button>
+        </aside>
+
+        <!-- Main Content Section -->
+        <section class="content">
+            <!-- Account Section (opened by default) -->
+            <div id="account" class="content-section" style="display:block;"> <!-- Set to block initially -->
+                <div class="account-section-container">
+                    <!-- Left Column: Account Information -->
+                    <div class="account-info">
+                        <h2>Account Information</h2>
+                        <div class="user-info">
+                            <p><strong>Email:</strong> <span id="user-email"></span></p>
+                            <p><strong>Account Status:</strong> 
+                                <button class="status-btn not-activated" id="account-status">Not Activated</button>
+                            </p>
+                            <p><strong>TMC Balance:</strong> <span id="tmc-balance">0.00 TMC</span></p>
+                            <p><strong>USDT Balance:</strong> <span id="usdt-balance-account">0.00 USDT</span></p>
+                            <p><strong>Total TMC Earned:</strong> <span id="total-tmc-earned">0.00 TMC</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Cat Photo and Progress Bar -->
+                    <div class="progress-section">
+                        <div class="right-side">
+                            <img id="cat-photo" src="path/to/default-cat.png" alt="Progress Cat" class="cat-image">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar">
+                                    <div class="progress"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="buy-soft" class="content-section">
+                <div class="buy-soft-container">
+                    <!-- Left Side: Info about the software -->
+                    <div class="buy-soft-left">
+                        <h2>Why Choose Our Software?</h2>
+                        <p>Our software provides cutting-edge features to improve your workflow and productivity. Whether you are a professional or a beginner, our app is designed with you in mind. Some of the features include:</p>
+                        <ul>
+                            <li>Feature 1: Detailed explanation of feature 1.</li>
+                            <li>Feature 2: Detailed explanation of feature 2.</li>
+                            <li>Feature 3: Detailed explanation of feature 3.</li>
+                            <li>And much more...</li>
+                        </ul>
+                        <p>Unlock the full potential of your workflow with our intuitive, easy-to-use software.</p>
+                    </div>
+
+                    <!-- Right Side: Price, payment options, and buy button -->
+                    <div class="buy-soft-right">
+                        <h3>Price: $99.99</h3>
+                        <div class="payment-method">
+                            <label for="payment-options">Choose your payment method:</label>
+                            <select id="payment-options">
+                                <option value="">Select a payment method</option>
+                                <option value="trc20">TRC-20 (USDT)</option>
+                                <option value="btc">Bitcoin (BTC)</option>
+                            </select>
+                        </div>
+                        <button id="buy-btn" class="btn-buy-soft">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Exchange Section -->
+            <div id="exchange" class="content-section" style="display: none;">
+                <h2>Exchange TMC to USDT</h2>
+                
+                <!-- Balance Information -->
+                <div class="balance-info">
+                    <p><strong>TMC Balance:</strong> <span id="tmc-balance-exchange">0.00</span></p>
+                    <p><strong>USDT Balance:</strong> <span id="usdt-balance-exchange">0.00</span></p>
+                </div>
+                
+                <!-- Center and make rate input smaller -->
+                <div class="rate-box">
+                    <p><strong>Rate:</strong> <input type="text" id="rate-amount" readonly value="-" /></p>
+                </div>
+                
+                <!-- Exchange Area -->
+                <div class="exchange-container">
+                    <div class="exchange-left">
+                        <!-- TMC Input and Slider -->
+                        <div class="tmc-input">
+                            <label for="tmc-amount">TMC Amount:</label>
+                            <input type="number" id="tmc-amount" value="0" min="0" step="1" />
+                        </div>
+                        <div class="tmc-slider">
+                            <input type="range" id="tmc-slider" min="0" max="0" value="0" step="0.1" />
+                        </div>
+                    </div>
+
+                    <!-- Arrow Icon (Center) -->
+                    <div class="exchange-arrow">
+                        <span>&#8594;</span> <!-- Right Arrow Icon -->
+                    </div>
+
+                    <div class="exchange-right">
+                        <!-- USDT Read-only Input -->
+                        <div class="usdt-input">
+                            <label for="usdt-amount">USDT Amount:</label>
+                            <input type="text" id="usdt-amount" value="-" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exchange Button -->
+                <div class="exchange-action">
+                    <button id="exchange-btn">Exchange</button>
+                </div>
+            </div>
+            <!-- Send Crypto Section -->
+            <div id="send" class="content-section" style="display: none;">
+                <h2>Send USDT (TRC-20)</h2>
+                
+                <!-- Balance Information -->
+                <div class="balance-info">
+                    <p><strong>USDT Balance:</strong> <span id="usdt-balance-send">0.00</span></p>
+                </div>
+                
+                <!-- USDT Amount Input, Slider, and Address Input -->
+                <div class="send-crypto-container">
+                    <div class="send-left">
+                        <div class="usdt-input">
+                            <label for="usdt-amount-send">USDT Amount:</label>
+                            <input type="number" id="usdt-amount-send" placeholder="Enter amount" min="0" step="1" />
+                            <p id="amount-error" class="error-message">Minimum amount for sending crypto is 50 USDT.</p>
+                        </div>
+                        <div class="usdt-slider">
+                            <input type="range" id="usdt-slider-send" min="0" max="0" value="0" step="1" />
+                        </div>
+                        <div class="usdt-address-input">
+                            <label for="trc20-address">TRC-20 USDT Address:</label>
+                            <input type="text" id="trc20-address" placeholder="Enter TRC-20 USDT Address" />
+                            <p id="address-error" class="error-message">Invalid TRC-20 address.</p>
+                        </div>
+                    </div>
+
+                    <!-- Send Button (right side) -->
+                    <div class="send-right">
+                        <button id="send-btn" disabled>Send</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Settings Section -->
+            <div id="settings" class="content-section" style="display: none;">
+                <div class="settings-info">
+                    <h2>Settings</h2>
+
+                    <!-- User Information (Email Display) -->
+                    <div class="settings-section">
+                        <h3>User Information</h3>
+                        <p><strong>Email:</strong> <span id="user-email-settings"></span></p>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="settings-section">
+                        <h3>Change Password</h3>
+                        <a href="#" id="change-password-link">Change Password</a>
+                    </div>
+
+                    <!-- Change Language -->
+                    <div class="settings-section">
+                        <h3>Change Language</h3>
+                        <p>Select your preferred language:</p>
+                        <div class="dropdown">
+                            <button class="btn" id="language-dropdown-btn">Change Language</button>
+                            <div class="dropdown-content" id="language-options">
+                                <button class="language-option" onclick="changeLanguage('en')">English</button>
+                                <button class="language-option" onclick="changeLanguage('es')">Spanish</button>
+                                <button class="language-option" onclick="changeLanguage('tr')">Turkish</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Support -->
+                    <div class="settings-section">
+                        <h3>Contact Support</h3>
+                        <textarea id="contact-message" rows="4" placeholder="Enter your message here..."></textarea>
+                        <button class="btn" id="send-message-btn" onclick="sendMessage()">Send Message</button>
+                        <p id="message-status"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
+

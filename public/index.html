@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIcontrib</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <!-- Center Section: App Icon and AIcontrib logo -->
+            <div class="center-container">
+                <div class="header-left">
+                    <img src="\inetpub\wwwroot\aicontrib/photo/app_icon.png" alt="App Icon" class="app-icon">
+                </div>
+                <div class="logo">
+                    <h1>AIcontrib</h1>
+                </div>
+            </div>
+
+            <!-- Right Section: Navigation Links -->
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section with Login/Signup Form -->
+    <section id="home" class="hero">
+        <div class="overlay"></div> <!-- Dark overlay -->
+        <div class="hero-container">
+            <div class="hero-content">
+                <h2>Harness the power of shared computational abilities for faster AI processing.</h2>
+                <a href="#services" class="btn">View Services</a>
+            </div>
+            
+            <!-- Login/Signup Form Container -->
+            <div class="form-container">
+                <div class="form-header">
+                    <button class="tab active" onclick="openForm('login')">Login</button>
+                    <button class="tab" onclick="openForm('signup')">Sign Up</button>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="login" class="form-content">
+                    <form id="login-form">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <div class="form-options">
+                            <label>
+                                <input type="checkbox"> Remember me
+                            </label>
+                            <a href="#">Forgot your password?</a>
+                        </div>
+                        <button type="submit" class="btn">Login</button>
+                    </form>
+                </div>
+                
+                <!-- Signup Form -->
+                <div id="signup" class="form-content" style="display:none;">
+                    <form id="signup-form">
+                        <input type="email" id="signup-email" placeholder="Email" required>
+                        <input type="password" id="signup-password" placeholder="Password" required minlength="6">
+                        <input type="password" id="signup-password-confirm" placeholder="Confirm Password" required minlength="6">
+                        <span id="password-error" style="color: red; display: none;">Passwords do not match.</span>
+                        <button type="submit" class="btn">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <h2>About AIcontrib</h2>
+        <div class="about-container">
+            <!-- Left Side: Text Content -->
+            <div class="about-text">
+                <p>
+                    AIcontrib is a revolutionary platform that connects individuals with spare computing power to AI software owners who need enhanced processing capabilities for complex tasks. Much like cryptocurrency mining, AIcontrib leverages the distributed computing power of its users, but instead of mining, the goal is to assist with AI development.
+                </p>
+                <p>
+                    By joining AIcontrib, users can share their PC’s unused computational resources to help AI software generate faster and more efficient responses, especially for computationally demanding tasks. This not only speeds up the AI’s performance but also allows users to earn rewards for their contributions.
+                </p>
+                <h3>How It Works</h3>
+                <p>
+                    AI software owners face the challenge of requiring enormous computational power to solve advanced problems, such as data processing, machine learning training, and complex AI simulations. AIcontrib solves this by connecting them with a global network of users who contribute their computing power.
+                </p>
+                <p>
+                    Each time a user shares their PC resources, the power is pooled together to generate faster and more efficient responses. As more users join the network, AIcontrib accumulates an immense computational capability, allowing AI owners to access the processing power they need, on demand.
+                </p>
+                <h3>Benefits for Users and AI Developers</h3>
+                <ul>
+                    <li>Users can earn rewards for sharing their PC’s spare processing power.</li>
+                    <li>AI developers gain access to affordable, scalable, and fast computational resources.</li>
+                    <li>Everyone contributes to the advancement of AI technology, pushing its boundaries further.</li>
+                </ul>
+                <a href="#contact" class="btn">Join Us Now</a>
+            </div>
+
+            <!-- Right Side: Image Placeholder -->
+            <div class="about-image">
+                <img src="\inetpub\wwwroot\aicontrib\photo\about1.png" alt="AIcontrib AI Computing Image">
+                <img src="/inetpub/wwwroot/aicontrib/photo/about2.png" alt="AI Contribution">
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <h2>Our Unique Services</h2>
+        <div class="service-cards">
+            <div class="card">
+                <img src="\inetpub\wwwroot\aicontrib/photo/proccesing.jpg" alt="Service 1 Image">
+                <h3>Computational Contribution</h3>
+                <p>Empower AI development by sharing your processing power.</p>
+            </div>
+            <div class="card">
+                <img src="\inetpub\wwwroot\aicontrib/photo/aitasks.jpg" alt="Service 2 Image">
+                <h3>AI Task Acceleration</h3>
+                <p>Speed up AI tasks with your spare computing resources.</p>
+            </div>
+            <div class="card">
+                <img src="\inetpub\wwwroot\aicontrib/photo/monetize.jpg" alt="Service 3 Image">
+                <h3>Monetize Your Processing Power</h3>
+                <p>Turn your idle computing resources into income.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <h2>Contact Us</h2>
+        <form id="contact-form" action="#">
+            <input type="text" placeholder="Your Name" required>
+            <input type="email" placeholder="Your Email" required>
+            <textarea placeholder="Your Message" required></textarea>
+            <button type="submit">Send</button>
+        </form>
+    </section>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2024 AIcontrib. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
