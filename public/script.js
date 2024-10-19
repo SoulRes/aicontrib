@@ -370,6 +370,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 // Redirect to payment URL if successful
                 window.location.href = data.payment_url;
+
+                // You can add a listener for the successful return and redirect to a thank-you page
+                // This could happen after returning from the NOWPayments gateway
+                // Example:
+                if (data.payment_status === 'waiting') {
+                    // Redirect to "Thank You" page after payment success
+                    window.location.href = '/thank-you.html'; // Change this URL to your thank-you page
+                }
             } else {
                 console.error('Error processing payment:', data.error);
                 alert('Error: ' + data.error);
