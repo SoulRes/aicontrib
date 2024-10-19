@@ -40,6 +40,25 @@ app.post('/api/create-payment', async (req, res) => {
   }
 });
 
+app.post('/api/payment-callback', (req, res) => {
+  // This is where NOWPayments will send payment updates.
+  const paymentData = req.body;
+  
+  // Log the payment data received
+  console.log('IPN Callback received:', paymentData);
+  
+  // Handle the payment status (e.g., confirmed, failed, etc.)
+  if (paymentData.payment_status === 'confirmed') {
+    console.log('Payment confirmed:', paymentData);
+    // Update your database or perform any other actions
+  } else if (paymentData.payment_status === 'failed') {
+    console.log('Payment failed:', paymentData);
+  }
+
+  // Respond to NOWPayments that the callback was received
+  res.status(200).send('IPN callback received');
+});
+
 // Get current directory (since __dirname is not available in ES Modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
