@@ -52,15 +52,22 @@ app.post('/api/create-payment', async (req, res) => {
         console.log('Payment creation response from NOWPayments:', data);
 
         if (response.ok) {
-            // Return the data to the frontend, which includes the payment URL
-            res.status(200).json(data);
+            // Check if the payment URL exists before returning
+            if (data.payment_url) {
+                console.log('Payment URL received:', data.payment_url);
+                // Send the payment URL back to the frontend
+                res.status(200).json(data);
+            } else {
+                console.error('Payment URL not received in response.');
+                res.status(500).json({ error: 'Payment URL not received' });
+            }
         } else {
             // Log any errors and return the error to the frontend
-            console.error('Error creating payment:', data.error);
+            console.error('Error creating payment:', data.error || 'Unknown error');
             res.status(500).json({ error: data.error || 'Error creating payment' });
         }
     } catch (error) {
-        console.error('Error in payment creation:', error);
+        console.error('Error in payment creation request:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -102,3 +109,4 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
