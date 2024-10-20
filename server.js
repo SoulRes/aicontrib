@@ -21,10 +21,12 @@ console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
 // Function to validate the HMAC signature from the IPN request
 function validateHMACSignature(params, xNowPaymentsSig, ipnSecret) {
   // Sort the object and create the signature
-  const sortedParams = Object.keys(params).sort().reduce((result, key) => {
-    result[key] = params[key];
-    return result;
-  }, {});
+  const sortedParams = Object.keys(params)
+    .sort()
+    .reduce((result, key) => {
+      result[key] = params[key];
+      return result;
+    }, {});
 
   const hmac = crypto.createHmac('sha512', ipnSecret);
   hmac.update(JSON.stringify(sortedParams));
@@ -47,7 +49,7 @@ app.post('/api/create-payment', async (req, res) => {
   });
 
   try {
-    const response = await fetch('/api/create-payment', {
+    const response = await fetch('https://api.nowpayments.io/v1/payment', {
       method: 'POST',
       headers: {
         'x-api-key': process.env.NOWPAYMENTS_API_KEY, // Securely use the API key from the environment
