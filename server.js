@@ -47,7 +47,7 @@ app.post('/api/create-payment', async (req, res) => {
   });
 
   try {
-    const response = await fetch('https://api.nowpayments.io/v1/payment', {
+    const response = await fetch('/api/create-payment', {
       method: 'POST',
       headers: {
         'x-api-key': process.env.NOWPAYMENTS_API_KEY, // Securely use the API key from the environment
