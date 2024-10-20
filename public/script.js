@@ -347,6 +347,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to handle the payment process using NOWPayments API
     async function processPayment(priceAmount, priceCurrency, payCurrency, orderId) {
         try {
+            console.log('Sending payment creation request with the following data:', {
+                price_amount: priceAmount,
+                price_currency: priceCurrency,
+                pay_currency: payCurrency,
+                order_id: orderId,
+                ipn_callback_url: process.env.IPN_CALLBACK_URL,
+            });
+
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
@@ -357,24 +365,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     price_currency: priceCurrency,
                     pay_currency: payCurrency,
                     order_id: orderId,
+                    ipn_callback_url: process.env.IPN_CALLBACK_URL,
                 }),
             });
 
-            // Log the raw response to see if it's valid JSON
+            // Log raw response for troubleshooting
             const responseText = await response.text();
             console.log('Raw response:', responseText);
 
-            // Check if response is JSON and parse it
             let data;
             try {
                 data = JSON.parse(responseText);
             } catch (e) {
                 console.error('Failed to parse response as JSON:', e);
-                alert('Error processing payment: Invalid response from the server.');
+                alert('Error: Invalid response from the server.');
                 return;
             }
 
-            // Log the entire response data for debugging
             console.log('Response data:', data);
 
             if (response.ok && data.payment_url) {
