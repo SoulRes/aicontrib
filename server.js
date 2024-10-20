@@ -13,9 +13,22 @@ const app = express();
 // Use built-in middleware to parse JSON requests
 app.use(express.json());
 
+// Log API key and IPN Callback URL to verify they are loaded correctly
+console.log('NOWPayments API Key:', process.env.NOWPAYMENTS_API_KEY);
+console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
+
 // API route to handle payment creation
 app.post('/api/create-payment', async (req, res) => {
   const { price_amount, price_currency, pay_currency, order_id } = req.body;
+
+  // Log the request data for debugging
+  console.log('Creating payment with the following data:', {
+    price_amount,
+    price_currency,
+    pay_currency,
+    order_id,
+    ipn_callback_url: process.env.IPN_CALLBACK_URL,
+  });
 
   try {
     const response = await fetch('https://api.nowpayments.io/v1/payment', {
@@ -34,8 +47,17 @@ app.post('/api/create-payment', async (req, res) => {
     });
 
     const data = await response.json();
-    res.status(200).json(data);
+
+    // Log the entire response for debugging
+    console.log('Payment creation response from NOWPayments:', data);
+
+    if (response.ok) {
+      res.status(200).json(data);
+    } else {
+      res.status(500).json({ error: data.error || 'Error creating payment' });
+    }
   } catch (error) {
+    console.error('Error in payment creation:', error);
     res.status(500).json({ error: error.message });
   }
 });
