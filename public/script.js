@@ -352,9 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 price_currency: priceCurrency,
                 pay_currency: payCurrency,
                 order_id: orderId,
-                ipn_callback_url: process.env.IPN_CALLBACK_URL,
             });
 
+            // Sending request to the backend API for payment creation
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
@@ -364,8 +364,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     price_amount: priceAmount,
                     price_currency: priceCurrency,
                     pay_currency: payCurrency,
-                    order_id: orderId,
-                    ipn_callback_url: process.env.IPN_CALLBACK_URL,
+                    order_id: orderId
+                    // Notice: IPN callback URL should be handled server-side for security reasons
                 }),
             });
 
@@ -375,17 +375,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let data;
             try {
-                data = JSON.parse(responseText);
+                data = JSON.parse(responseText); // Attempt to parse the response as JSON
             } catch (e) {
                 console.error('Failed to parse response as JSON:', e);
                 alert('Error: Invalid response from the server.');
                 return;
             }
 
-            console.log('Response data:', data);
+            console.log('Response data:', data); // Log parsed data for better visibility
 
             if (response.ok && data.payment_url) {
-                // Redirect to the NOWPayments payment page
+                // Redirect to the NOWPayments payment page if URL is available
                 window.location.href = data.payment_url;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
