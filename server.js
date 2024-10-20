@@ -5,6 +5,9 @@ import crypto from 'crypto'; // To handle HMAC for IPN validation
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import cors from 'cors';
+
+app.use(cors()); // Allow requests from any origin
 
 // Load environment variables from the .env file
 dotenv.config();
