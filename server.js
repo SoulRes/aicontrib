@@ -62,32 +62,29 @@ app.post('/api/create-payment', async (req, res) => {
         price_currency,
         pay_currency,
         order_id,
-        ipn_callback_url: process.env.IPN_CALLBACK_URL,
+        ipn_callback_url: process.env.IPN_CALLBACK_URL, // Use the IPN callback URL from environment
       }),
     });
 
-    // Log the raw response details
-    console.log('NOWPayments raw response:', response);
+    // Log the entire response object for detailed debugging
+    console.log('NOWPayments API full response:', response);
 
-    // Parse response JSON
     const data = await response.json();
 
-    // Log the full parsed response for debugging
-    console.log('NOWPayments API full response:', data);
+    // Log the parsed data response
+    console.log('Parsed response from NOWPayments:', data);
 
     if (response.ok && data.payment_url) {
-      // Payment created successfully, return the payment URL
-      return res.status(201).json(data);
-    } else if (data.payment_id) {
-      // Payment created but might be in "waiting" status
-      console.log('Payment created but waiting for customer payment:', data);
-      return res.status(201).json({ message: 'Payment created, waiting for payment', data });
+      // If response is successful, return the data to the frontend
+      console.log('Payment creation successful:', data);
+      return res.status(200).json(data);
     } else {
-      // Log and return error from NOWPayments
-      console.error('Error creating payment qwerty:', data.error || 'Unknown error');
+      // Log the error details
+      console.error('Error in payment creation:', data);
       return res.status(500).json({ error: data.error || 'Error creating payment' });
     }
   } catch (error) {
+    // Catch and log any errors during the process
     console.error('Error in payment creation request:', error);
     return res.status(500).json({ error: error.message });
   }
