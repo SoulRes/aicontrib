@@ -54,7 +54,7 @@ app.post('/api/create-payment', async (req, res) => {
     const response = await fetch('https://api.nowpayments.io/v1/payment', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.NOWPAYMENTS_API_KEY,
+        'x-api-key': process.env.NOWPAYMENTS_API_KEY, // Securely use the API key from the environment
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -66,16 +66,20 @@ app.post('/api/create-payment', async (req, res) => {
       }),
     });
 
+    // Log the raw response details
+    console.log('NOWPayments raw response:', response);
+
+    // Parse response JSON
     const data = await response.json();
 
-    // Log the entire response for debugging
-    console.log('Payment creation response from NOWPayments:', data);
+    // Log the full parsed response for debugging
+    console.log('NOWPayments API full response:', data);
 
     if (response.ok && data.payment_url) {
       // Payment created successfully, return the payment URL
       return res.status(201).json(data);
     } else if (data.payment_id) {
-      // Payment created but might be in "waiting" status (not an error)
+      // Payment created but might be in "waiting" status
       console.log('Payment created but waiting for customer payment:', data);
       return res.status(201).json({ message: 'Payment created, waiting for payment', data });
     } else {
