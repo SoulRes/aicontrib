@@ -70,11 +70,17 @@ app.post('/api/create-payment', async (req, res) => {
 
     // Log the entire response for debugging
     console.log('Payment creation response from NOWPayments:', data);
-    console.log('Response status:', response.status); 
 
-    if (response.ok && data.payment_url) {
-      // Return the payment URL to the frontend
-      res.status(200).json(data);
+    if (response.ok && data.payment_id) {
+      // Check if a payment URL is returned (which should be used to redirect the user)
+      if (data.payment_url) {
+        // Return the payment URL to the frontend
+        res.status(200).json(data);
+      } else {
+        // If payment_url is missing but we still have a valid payment, it's not an error.
+        console.log('Payment is valid but waiting for customer to pay');
+        res.status(200).json({ message: 'Payment created, waiting for customer to pay', data });
+      }
     } else {
       // Log and return error
       console.error('Error creating payment:', data.error || 'Unknown error');
