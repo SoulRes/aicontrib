@@ -70,6 +70,7 @@ app.post('/api/create-payment', async (req, res) => {
 
     // Log the entire response for debugging
     console.log('Payment creation response from NOWPayments:', data);
+    console.log('Response status:', response.status); 
 
     if (response.ok && data.payment_url) {
       // Return the payment URL to the frontend
