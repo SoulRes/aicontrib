@@ -54,7 +54,7 @@ app.post('/api/create-payment', async (req, res) => {
     const response = await fetch('https://api.nowpayments.io/v1/payment', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.NOWPAYMENTS_API_KEY, // Securely use the API key from the environment
+        'x-api-key': process.env.NOWPAYMENTS_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -62,7 +62,7 @@ app.post('/api/create-payment', async (req, res) => {
         price_currency,
         pay_currency,
         order_id,
-        ipn_callback_url: process.env.IPN_CALLBACK_URL, // Use the IPN callback URL from environment
+        ipn_callback_url: process.env.IPN_CALLBACK_URL,
       }),
     });
 
@@ -71,24 +71,21 @@ app.post('/api/create-payment', async (req, res) => {
     // Log the entire response for debugging
     console.log('Payment creation response from NOWPayments:', data);
 
-    if (response.ok && data.payment_id) {
-      // Check if a payment URL is returned (which should be used to redirect the user)
-      if (data.payment_url) {
-        // Return the payment URL to the frontend
-        res.status(200).json(data);
-      } else {
-        // If payment_url is missing but we still have a valid payment, it's not an error.
-        console.log('Payment is valid but waiting for customer to pay');
-        res.status(200).json({ message: 'Payment created, waiting for customer to pay', data });
-      }
+    if (response.ok && data.payment_url) {
+      // Payment created successfully, return the payment URL
+      return res.status(201).json(data);
+    } else if (data.payment_id) {
+      // Payment created but might be in "waiting" status (not an error)
+      console.log('Payment created but waiting for customer payment:', data);
+      return res.status(201).json({ message: 'Payment created, waiting for payment', data });
     } else {
-      // Log and return error
+      // Log and return error from NOWPayments
       console.error('Error creating payment:', data.error || 'Unknown error');
-      res.status(500).json({ error: data.error || 'Error creating payment' });
+      return res.status(500).json({ error: data.error || 'Error creating payment' });
     }
   } catch (error) {
     console.error('Error in payment creation request:', error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
