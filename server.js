@@ -84,7 +84,7 @@ app.post('/api/create-payment', async (req, res) => {
       return res.status(201).json({ message: 'Payment created, waiting for payment', data });
     } else {
       // Log and return error from NOWPayments
-      console.error('Error creating payment:', data.error || 'Unknown error');
+      console.error('Error creating payment qwerty:', data.error || 'Unknown error');
       return res.status(500).json({ error: data.error || 'Error creating payment' });
     }
   } catch (error) {
