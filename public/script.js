@@ -365,7 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     price_currency: priceCurrency,
                     pay_currency: payCurrency,
                     order_id: orderId
-                    // Notice: IPN callback URL should be handled server-side for security reasons
                 }),
             });
 
@@ -375,7 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let data;
             try {
-                data = JSON.parse(responseText); // Attempt to parse the response as JSON
+                // Attempt to parse the response as JSON
+                data = JSON.parse(responseText);
             } catch (e) {
                 console.error('Failed to parse response as JSON:', e);
                 alert('Error: Invalid response from the server.');
@@ -384,8 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Response data:', data); // Log parsed data for better visibility
 
+            // Redirect to the NOWPayments payment page if URL is available
             if (response.ok && data.payment_url) {
-                // Redirect to the NOWPayments payment page if URL is available
                 window.location.href = data.payment_url;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');

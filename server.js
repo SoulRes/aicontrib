@@ -5,17 +5,16 @@ import crypto from 'crypto'; // To handle HMAC for IPN validation
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import cors from 'cors';
-
-app.use(cors()); // Allow requests from any origin
+import cors from 'cors'; // To handle cross-origin requests
 
 // Load environment variables from the .env file
 dotenv.config();
 
 const app = express();
 
-// Use built-in middleware to parse JSON requests
+// Use built-in middleware to parse JSON requests and handle CORS
 app.use(express.json());
+app.use(cors()); // Allow requests from any origin
 
 // Log API key and IPN Callback URL to verify they are loaded correctly
 console.log('NOWPayments API Key:', process.env.NOWPAYMENTS_API_KEY);
@@ -132,4 +131,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
