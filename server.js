@@ -1,7 +1,6 @@
 // Import necessary modules using ES Modules syntax
 import express from 'express';
 import fetch from 'node-fetch';
-import crypto from 'crypto'; // To handle HMAC for IPN validation
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -16,66 +15,45 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // Allow requests from any origin
 
-// Log API key and IPN Callback URL to verify they are loaded correctly
-console.log('NOWPayments API Key:', process.env.NOWPAYMENTS_API_KEY);
-console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
+// Log API key and other relevant variables to verify they are loaded correctly
+console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
 
-// Function to validate the HMAC signature from the IPN request
-function validateHMACSignature(params, xNowPaymentsSig, ipnSecret) {
-  // Sort the object and create the signature
-  const sortedParams = Object.keys(params)
-    .sort()
-    .reduce((result, key) => {
-      result[key] = params[key];
-      return result;
-    }, {});
-
-  const hmac = crypto.createHmac('sha512', ipnSecret);
-  hmac.update(JSON.stringify(sortedParams));
-  const signature = hmac.digest('hex');
-
-  return signature === xNowPaymentsSig;
-}
-
-// API route to handle payment creation
+// API route to handle payment creation using BitPay
 app.post('/api/create-payment', async (req, res) => {
-  const { price_amount, price_currency, pay_currency, order_id } = req.body;
+  const { price, currency, orderId } = req.body;
 
   // Log the request data for debugging
   console.log('Creating payment with the following data:', {
-    price_amount,
-    price_currency,
-    pay_currency,
-    order_id,
-    ipn_callback_url: process.env.IPN_CALLBACK_URL,
+    price,
+    currency,
+    orderId
   });
 
   try {
-    const response = await fetch('https://api.nowpayments.io/v1/payment', {
+    const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.NOWPAYMENTS_API_KEY, // Securely use the API key from the environment
+        'Authorization': `Basic ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        price_amount,
-        price_currency,
-        pay_currency,
-        order_id,
-        ipn_callback_url: process.env.IPN_CALLBACK_URL, // Use the IPN callback URL from environment
+        price: price,          // Price of the product/service
+        currency: currency,    // Currency (e.g., USD, BTC)
+        orderId: orderId,      // Order ID for tracking purposes
+        notificationURL: process.env.IPN_CALLBACK_URL, // Notification callback URL
       }),
     });
 
     // Log the entire response object for detailed debugging
-    console.log('NOWPayments API full response:', response);
+    console.log('BitPay API full response:', response);
 
     const data = await response.json();
 
     // Log the parsed data response
-    console.log('Parsed response from NOWPayments:', data);
+    console.log('Parsed response from BitPay:', data);
 
-    if (response.ok && data.payment_url) {
-      // If response is successful, return the data to the frontend
+    if (response.ok && data.url) {
+      // If response is successful, return the payment URL to the frontend
       console.log('Payment creation successful:', data);
       return res.status(200).json(data);
     } else {
@@ -90,32 +68,22 @@ app.post('/api/create-payment', async (req, res) => {
   }
 });
 
-// API route to handle the IPN callback from NOWPayments
+// API route to handle the IPN callback from BitPay
 app.post('/api/payment-callback', (req, res) => {
   const paymentData = req.body;
-  const xNowPaymentsSig = req.headers['x-nowpayments-sig'];
 
   // Log the payment data received for debugging
   console.log('IPN Callback received:', paymentData);
 
-  // Validate the IPN signature
-  const ipnSecret = process.env.IPN_SECRET;
-  const isValid = validateHMACSignature(paymentData, xNowPaymentsSig, ipnSecret);
-
-  if (!isValid) {
-    console.error('Invalid IPN signature!');
-    return res.status(400).send('Invalid IPN signature');
-  }
-
   // Handle the payment status (e.g., confirmed, failed, etc.)
-  if (paymentData.payment_status === 'confirmed') {
+  if (paymentData.status === 'complete') {
     console.log('Payment confirmed:', paymentData);
     // Update your database or perform any other actions necessary
-  } else if (paymentData.payment_status === 'failed') {
+  } else if (paymentData.status === 'failed') {
     console.log('Payment failed:', paymentData);
   }
 
-  // Respond to NOWPayments that the callback was received successfully
+  // Respond to BitPay that the callback was received successfully
   res.status(200).send('IPN callback received');
 });
 

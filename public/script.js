@@ -344,27 +344,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Function to handle the payment process using NOWPayments API
-    async function processPayment(priceAmount, priceCurrency, payCurrency, orderId) {
+    // Function to handle the payment process using BitPay API
+    async function processPayment(priceAmount, priceCurrency, orderId) {
         try {
             console.log('Sending payment creation request with the following data:', {
-                price_amount: priceAmount,
-                price_currency: priceCurrency,
-                pay_currency: payCurrency,
-                order_id: orderId,
+                price: priceAmount,
+                currency: priceCurrency,
+                orderId: orderId
             });
 
-            // Sending request to the backend API for payment creation
+            // Sending request to the backend API for BitPay invoice creation
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    price_amount: priceAmount,
-                    price_currency: priceCurrency,
-                    pay_currency: payCurrency,
-                    order_id: orderId
+                    price: priceAmount,           // Price of the product/service
+                    currency: priceCurrency,      // Currency like USD, BTC, etc.
+                    orderId: orderId              // Your order ID for internal tracking
                 }),
             });
 
@@ -384,9 +382,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Response data:', data); // Log parsed data for better visibility
 
-            // Redirect to the NOWPayments payment page if URL is available
-            if (response.ok && data.payment_url) {
-                window.location.href = data.payment_url;
+            // Redirect to the BitPay payment page if URL is available
+            if (response.ok && data.paymentUrl) {
+                window.location.href = data.paymentUrl;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
