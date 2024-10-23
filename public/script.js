@@ -384,7 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Redirect to the BitPay payment page if URL is available
             if (response.ok && data.paymentUrl) {
-                window.location.href = data.paymentUrl;
+                window.location.href = data.paymentUrl; // Redirect to BitPay's payment page
+            } else if (response.ok && data.success) {
+                // If the response indicates success and you're staying on your site
+                window.location.href = '/success.html'; // Redirect to your custom success page
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
