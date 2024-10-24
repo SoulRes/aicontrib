@@ -34,7 +34,7 @@ app.post('/api/create-payment', async (req, res) => {
     const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
+        'Authorization': `token ${process.env.BITPAY_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
