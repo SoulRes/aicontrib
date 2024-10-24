@@ -7,53 +7,48 @@ export default async (req, res) => {
 
   const { price, currency, orderId } = req.body;
 
-  // Log the request data and environment variables for debugging
+  // Log the request data for debugging
   console.log('Creating payment with the following data:', {
     price,
     currency,
-    orderId,
-    ipn_callback_url: process.env.IPN_CALLBACK_URL,
+    orderId
   });
 
-  console.log('API Key:', process.env.BITPAY_API_KEY);
-  console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
-
-  if (!process.env.BITPAY_API_KEY || !process.env.IPN_CALLBACK_URL) {
-    return res.status(500).json({ error: 'API Key or IPN Callback URL is missing in environment variables.' });
-  }
-
   try {
-    // Send request to BitPay API to create the invoice
-    const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
+    const response = await fetch(`${process.env.BITPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${process.env.BITPAY_API_KEY}`, // Use the API Key
+        'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        price,         // Price of the product/service
-        currency,      // Currency (e.g., USD, BTC)
-        orderId,       // Your custom order ID
-        notificationURL: process.env.IPN_CALLBACK_URL, // IPN Callback URL for notifications
+        metadata: {
+          orderId: orderId,
+          itemDesc: "My Product",
+          posData: {}
+        },
+        checkout: {
+          speedPolicy: "HighSpeed",
+          expirationMinutes: 90,
+          monitoringMinutes: 90,
+          redirectURL: process.env.SUCCESS_URL || "https://yourdomain.com/success",
+          redirectAutomatically: true,
+          requiresRefundEmail: false
+        },
+        amount: price,
+        currency: currency,
+        additionalSearchTerms: ["product", "my-store"]
       }),
     });
 
-    const contentType = response.headers.get('content-type');
+    const data = await response.json();
 
-    // Ensure response is JSON
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
-      
-      if (response.ok && data.url) {
-        return res.status(200).json(data);  // Return payment URL to frontend
-      } else {
-        console.error('Error creating payment:', data);
-        return res.status(response.status).json({ error: data.error || 'Error creating payment' });
-      }
+    if (response.ok && data.checkoutLink) {
+      console.log('Payment creation successful:', data);
+      return res.status(200).json(data);
     } else {
-      const text = await response.text();
-      console.error('Unexpected response format:', text);
-      return res.status(500).json({ error: 'Unexpected response format from BitPay' });
+      console.error('Error creating payment:', data);
+      return res.status(500).json({ error: data.message || 'Error creating payment' });
     }
   } catch (error) {
     console.error('Error creating payment:', error);

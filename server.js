@@ -57,7 +57,7 @@ app.post('/api/create-payment', async (req, res) => {
           speedPolicy: "HighSpeed",       // Fast transaction processing
           expirationMinutes: 90,          // Payment expiration time
           monitoringMinutes: 90,          // Monitoring time for payment confirmations
-          redirectURL: process.env.SUCCESS_URL || "https://yourdomain.com/success", // Redirect to success page
+          redirectURL: process.env.SUCCESS_URL || "https://aicontrib.com/success", // Redirect to success page
           redirectAutomatically: true,    // Redirect automatically after payment
           requiresRefundEmail: false
         },
