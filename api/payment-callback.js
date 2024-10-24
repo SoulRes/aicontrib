@@ -18,6 +18,6 @@ export default async (req, res) => {
     // Handle failed payments (e.g., mark the order as failed)
   }
 
-  // Send response to BitPay to confirm receipt of IPN
+  // Send response to BtcPay to confirm receipt of IPN
   res.status(200).json({ message: 'IPN received' });
 };

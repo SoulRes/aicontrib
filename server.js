@@ -16,12 +16,12 @@ app.use(express.json());
 app.use(cors()); // Allow requests from any origin
 
 // Log environment variables for debugging
-console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
-console.log('BitPay Store ID:', process.env.BTCPAY_STORE_ID);
-console.log('BitPay URL:', process.env.BITPAY_URL);
+console.log('BtcPay API Key:', process.env.BTCPAY_API_KEY);
+console.log('BtcPay Store ID:', process.env.BTCPAY_STORE_ID);
+console.log('BtcPay URL:', process.env.BTCPAY_URL);
 console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
 
-// API route to handle payment creation using BitPay
+// API route to handle payment creation using BtcPay
 app.post('/api/create-payment', async (req, res) => {
   const { price, currency, orderId } = req.body;
 
@@ -32,19 +32,19 @@ app.post('/api/create-payment', async (req, res) => {
     orderId,
   });
 
-  if (!process.env.BITPAY_API_KEY || !process.env.BTCPAY_STORE_ID || !process.env.BITPAY_URL) {
+  if (!process.env.BTCPAY_API_KEY || !process.env.BTCPAY_STORE_ID || !process.env.BTCPAY_URL) {
     console.error('Missing required environment variables');
     return res.status(500).json({ error: 'Missing required environment variables.' });
   }
 
   try {
-    const apiUrl = `${process.env.BITPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`;
-    console.log('BitPay API URL:', apiUrl);
+    const apiUrl = `${process.env.BTCPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`;
+    console.log('BtcPay API URL:', apiUrl);
 
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
+        'Authorization': `token ${process.env.BTCPAY_API_KEY}`, // Use BtcPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -68,13 +68,13 @@ app.post('/api/create-payment', async (req, res) => {
     });
 
     // Log the entire response object for detailed debugging
-    console.log('BitPay API response status:', response.status);
-    console.log('BitPay API headers:', response.headers);
+    console.log('BtcPay API response status:', response.status);
+    console.log('BtcPay API headers:', response.headers);
 
     const data = await response.json();
 
     // Log the parsed data response
-    console.log('Parsed response from BitPay:', data);
+    console.log('Parsed response from BtcPay:', data);
 
     if (response.ok && data.checkoutLink) {
       // If response is successful, return the payment URL to the frontend
@@ -92,7 +92,7 @@ app.post('/api/create-payment', async (req, res) => {
   }
 });
 
-// API route to handle the IPN callback from BitPay
+// API route to handle the IPN callback from BtcPay
 app.post('/api/payment-callback', (req, res) => {
   const paymentData = req.body;
 
@@ -107,7 +107,7 @@ app.post('/api/payment-callback', (req, res) => {
     console.log('Payment failed:', paymentData);
   }
 
-  // Respond to BitPay that the callback was received successfully
+  // Respond to BtcPay that the callback was received successfully
   res.status(200).send('IPN callback received');
 });
 

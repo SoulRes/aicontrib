@@ -15,10 +15,10 @@ export default async (req, res) => {
   });
 
   try {
-    const response = await fetch(`${process.env.BITPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`, {
+    const response = await fetch(`${process.env.BTCPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
+        'Authorization': `token ${process.env.BTCPAY_API_KEY}`, // Use BtcPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
