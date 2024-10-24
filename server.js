@@ -15,9 +15,11 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // Allow requests from any origin
 
-// Log API key and other relevant variables to verify they are loaded correctly
+// Log environment variables for debugging
 console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
-console.log('Store ID:', process.env.BTCPAY_STORE_ID);
+console.log('BitPay Store ID:', process.env.BTCPAY_STORE_ID);
+console.log('BitPay URL:', process.env.BITPAY_URL);
+console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
 
 // API route to handle payment creation using BitPay
 app.post('/api/create-payment', async (req, res) => {
@@ -30,24 +32,44 @@ app.post('/api/create-payment', async (req, res) => {
     orderId,
   });
 
+  if (!process.env.BITPAY_API_KEY || !process.env.BTCPAY_STORE_ID || !process.env.BITPAY_URL) {
+    console.error('Missing required environment variables');
+    return res.status(500).json({ error: 'Missing required environment variables.' });
+  }
+
   try {
-    // Use the correct BitPay URL structure with your store ID
-    const response = await fetch(`${process.env.BITPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`, {
+    const apiUrl = `${process.env.BITPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`;
+    console.log('BitPay API URL:', apiUrl);
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        price: price,          // Price of the product/service
-        currency: currency,    // Currency (e.g., USD, BTC)
-        orderId: orderId,      // Order ID for tracking purposes
-        notificationURL: process.env.IPN_CALLBACK_URL, // Notification callback URL
+        metadata: {
+          orderId: orderId,         // Order ID for tracking purposes
+          itemDesc: "My Product",   // Description of the product
+          posData: {}
+        },
+        checkout: {
+          speedPolicy: "HighSpeed",       // Fast transaction processing
+          expirationMinutes: 90,          // Payment expiration time
+          monitoringMinutes: 90,          // Monitoring time for payment confirmations
+          redirectURL: process.env.SUCCESS_URL || "https://yourdomain.com/success", // Redirect to success page
+          redirectAutomatically: true,    // Redirect automatically after payment
+          requiresRefundEmail: false
+        },
+        amount: price,            // Price of the product/service
+        currency: currency,        // Currency (e.g., USD, BTC)
+        additionalSearchTerms: ["product", "my-store"] // Optional search terms
       }),
     });
 
     // Log the entire response object for detailed debugging
-    console.log('BitPay API full response:', response);
+    console.log('BitPay API response status:', response.status);
+    console.log('BitPay API headers:', response.headers);
 
     const data = await response.json();
 
@@ -106,3 +128,4 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
