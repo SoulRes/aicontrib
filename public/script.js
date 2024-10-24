@@ -344,8 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Function to handle the payment process using BTCPay API
-    async function processPayment(priceAmount, priceCurrency, orderId) {
+    async function processPayment() {
+        const priceAmount = 5.00; // Set price to $5 for testing
+        const priceCurrency = 'USD'; // Currency in USD
+        const orderId = 'test-order-123'; // Create a test order ID
+
         try {
             console.log('Sending payment creation request with the following data:', {
                 price: priceAmount,
@@ -353,7 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 orderId: orderId
             });
 
-            // Sending request to the backend API for BTCPay invoice creation
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
@@ -366,13 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }),
             });
 
-            // Log raw response for troubleshooting
             const responseText = await response.text();
             console.log('Raw response:', responseText);
 
             let data;
             try {
-                // Attempt to parse the response as JSON
                 data = JSON.parse(responseText);
             } catch (e) {
                 console.error('Failed to parse response as JSON:', e);
@@ -380,11 +380,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            console.log('Response data:', data); // Log parsed data for better visibility
+            console.log('Response data:', data);
 
-            // Redirect to the BTCPay payment page if URL is available
             if (response.ok && data.checkoutLink) {
-                window.location.href = data.checkoutLink;
+                window.location.href = data.checkoutLink; // Redirect to BTCPay checkout page
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
