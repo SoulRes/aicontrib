@@ -1,4 +1,3 @@
-// Import necessary modules using ES Modules syntax
 import express from 'express';
 import fetch from 'node-fetch';
 import path from 'path';
@@ -17,7 +16,6 @@ app.use(cors()); // Allow requests from any origin
 
 // Log API key and other relevant variables to verify they are loaded correctly
 console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
-console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
 
 // API route to handle payment creation using BitPay
 app.post('/api/create-payment', async (req, res) => {
@@ -34,7 +32,7 @@ app.post('/api/create-payment', async (req, res) => {
     const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `token ${process.env.BITPAY_API_KEY}`,
+        'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API key in the token format for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -42,7 +40,6 @@ app.post('/api/create-payment', async (req, res) => {
         currency: currency,    // Currency (e.g., USD, BTC)
         orderId: orderId,      // Order ID for tracking purposes
         notificationURL: process.env.IPN_CALLBACK_URL, // Notification callback URL
-        redirectURL: 'https://yourdomain.com/success', // Redirect to success page after payment
       }),
     });
 
@@ -99,11 +96,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Serve the index.html file for the root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Serve the success.html file for the success route
-app.get('/success', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
 // Start the server
