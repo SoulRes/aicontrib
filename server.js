@@ -17,6 +17,7 @@ app.use(cors()); // Allow requests from any origin
 
 // Log API key and other relevant variables to verify they are loaded correctly
 console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
+console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
 
 // API route to handle payment creation using BitPay
 app.post('/api/create-payment', async (req, res) => {
@@ -41,6 +42,7 @@ app.post('/api/create-payment', async (req, res) => {
         currency: currency,    // Currency (e.g., USD, BTC)
         orderId: orderId,      // Order ID for tracking purposes
         notificationURL: process.env.IPN_CALLBACK_URL, // Notification callback URL
+        redirectURL: 'https://yourdomain.com/success', // Redirect to success page after payment
       }),
     });
 
@@ -99,8 +101,14 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Serve the success.html file for the success route
+app.get('/success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'success.html'));
+});
+
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+

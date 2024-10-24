@@ -1,113 +1,797 @@
-// Import necessary modules using ES Modules syntax
-import express from 'express';
-import fetch from 'node-fetch';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import cors from 'cors'; // To handle cross-origin requests
+// Function to switch between sections (make it globally available)
+function switchSection(sectionId) {
+    const sections = document.querySelectorAll('.content-section');
+    const selectedSection = document.getElementById(sectionId);
 
-// Load environment variables from the .env file
-dotenv.config();
+    // Check if the element with the ID exists
+    if (selectedSection) {
+        // Hide all sections
+        sections.forEach(section => {
+            if (section) section.style.display = 'none';
+        });
 
-const app = express();
+        // Show the selected section
+        selectedSection.style.display = 'block';
+    } else {
+        console.error(`Section with id '${sectionId}' not found`);
+    }
 
-// Use built-in middleware to parse JSON requests and handle CORS
-app.use(express.json());
-app.use(cors()); // Allow requests from any origin
+    // Update menu active state
+    const activeButton = document.querySelector(`button[onclick="switchSection('${sectionId}')"]`);
+    if (activeButton) {
+        document.querySelectorAll('.menu-item').forEach(button => {
+            button.classList.remove('active');
+        });
+        activeButton.classList.add('active');
+    }
+}
 
-// Log API key and other relevant variables to verify they are loaded correctly
-console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
-console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
+document.addEventListener('DOMContentLoaded', () => {
+    // Ensure the login form is shown by default when the page loads
+    const loginFormElement = document.getElementById('login'); // Check if the login form exists
+    if (loginFormElement) {
+        openForm('login'); // Open the login form by default if it exists
+    } else {
+        console.log("Login form not found on this page."); // Log this to avoid throwing errors
+    }
+    
+    const downloadSection = document.getElementById('download');
+    if (downloadSection) {
+        switchSection('download');
+    } else {
+        console.error("Section 'download' not found.");
+    }
 
-// API route to handle payment creation using BitPay
-app.post('/api/create-payment', async (req, res) => {
-  const { price, currency, orderId } = req.body;
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDj2fDwpstFATN1GqzKdEvNqSe3u8EnNNM",
+        authDomain: "aicontribution.firebaseapp.com",
+        databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "aicontribution",
+        storageBucket: "aicontribution.appspot.com",
+        messagingSenderId: "847220817804",
+        appId: "1:847220817804:web:85e0307421f1ad87e4e0a9",
+        measurementId: "G-X9ZVDJLF8W"
+    };
 
-  // Log the request data for debugging
-  console.log('Creating payment with the following data:', {
-    price,
-    currency,
-    orderId
-  });
+    // Initialize Firebase only once
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore(); // Firestore for storing messages
+    
+    const rateInput = document.getElementById('rate-amount');
 
-  try {
-    const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        price: price,          // Price of the product/service
-        currency: currency,    // Currency (e.g., USD, BTC)
-        orderId: orderId,      // Order ID for tracking purposes
-        notificationURL: process.env.IPN_CALLBACK_URL, // Notification callback URL
-        redirectURL: 'https://yourdomain.com/success', // Redirect to success page after payment
-      }),
+    function fetchRate() {
+        const rateDocRef = db.collection("exchangeRates").doc("currentRate");
+
+        rateDocRef.get().then((doc) => {
+            if (doc.exists) {
+                const rate = doc.data().rate || "-"; // Get the rate from the document
+                rateInput.value = rate.toFixed(2); // Set the rate in the input box
+            } else {
+                console.error("No such document! Ensure the rate exists.");
+            }
+        }).catch((error) => {
+            console.error("Error fetching rate:", error);
+        });
+    }
+
+    // Call the function to fetch the rate on page load
+    fetchRate(); 
+
+    // JavaScript to switch between login and signup forms
+    function openForm(formType) {
+        // Hide all forms
+        document.querySelectorAll('.form-content').forEach(form => {
+            if (form) {
+                form.style.display = 'none';
+            }
+        });
+
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            if (tab) {
+                tab.classList.remove('active');
+            }
+        });
+
+        // Show the selected form and activate the corresponding tab
+        const selectedForm = document.getElementById(formType);
+        const activeTab = document.querySelector(`[onclick="openForm('${formType}')"]`);
+
+        if (selectedForm) {
+            selectedForm.style.display = 'block';
+        } else {
+            console.error(`Form with id '${formType}' not found.`);
+        }
+
+        if (activeTab) {
+            activeTab.classList.add('active');
+        } else {
+            console.error(`Tab with action 'openForm(${formType})' not found.`);
+        }
+    }
+
+    // Firebase Authentication - Signup
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+        signupForm.addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            const email = document.getElementById('signup-email').value.toLowerCase().trim(); // Normalize email
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-password-confirm').value;
+            const passwordError = document.getElementById('password-error');
+
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                if (passwordError) {
+                    passwordError.style.display = 'block';
+                    passwordError.textContent = "Passwords do not match.";
+                }
+                return;
+            }
+
+            // Ensure password is at least 6 characters long
+            if (password.length < 6) {
+                if (passwordError) {
+                    passwordError.style.display = 'block';
+                    passwordError.textContent = "Password must be at least 6 characters.";
+                }
+                return;
+            }
+
+            if (passwordError) passwordError.style.display = 'none'; // Hide the error message
+
+            // Sign up the user
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    user.sendEmailVerification()
+                        .then(() => {
+                            alert("Signup successful! Please check your email to verify your account.");
+
+                            // Create user in Firestore with tmc and totalTMC after signup
+                            createUserInFirestore(user.email);
+                        })
+                        .catch((error) => {
+                            console.error("Error sending verification email:", error);
+                            alert("Error sending verification email: " + error.message);
+                        });
+                })
+                .catch((error) => {
+                    console.error("Error during signup:", error);
+                    alert("Signup failed: " + error.message);
+                });
+        });
+    }
+
+    // Function to create user document in Firestore with tmc and totalTMC fields
+    function createUserInFirestore(userEmail) {
+        const userDocRef = db.collection("users").doc(userEmail);
+
+        // Set the user's initial TMC values
+        userDocRef.set({
+            tmc: 0,           // Initial TMC balance
+            totalTMC: 0,  
+            usdt: 0, 
+            email: userEmail  // Save the user's email for reference
+        })
+        .then(() => {
+            console.log("User document created with initial TMC and Total TMC values!");
+        })
+        .catch((error) => {
+            console.error("Error creating user document in Firestore: ", error);
+        });
+    }
+
+    // Firebase Authentication - Login with email verification check
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+
+                    if (user.emailVerified) {
+                        alert("Login successful!");
+                        window.location.href = "personal-cabinet.html"; // Redirect to personal cabinet
+                    } else {
+                        alert("Please verify your email before logging in.");
+                        auth.signOut(); // Sign out the user if not verified
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error during login:", error);
+                    alert("Login failed: " + error.message);
+                });
+        });
+    }
+
+    // Fetch TMC balance and display user email in personal cabinet
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            const emailElement = document.getElementById('user-email');
+            const emailSettingsElement = document.getElementById('user-email-settings');
+            const accountStatusElement = document.getElementById('account-status');
+
+            const userEmail = user.email.toLowerCase();  // Normalize email to lowercase
+            console.log("Normalized user email:", userEmail);  // Log the normalized email
+
+            if (emailElement) {
+                emailElement.textContent = user.email;
+            }
+
+            if (emailSettingsElement) {
+                emailSettingsElement.textContent = user.email;
+            }
+
+            if (user.emailVerified && accountStatusElement) {
+                accountStatusElement.classList.remove('not-activated');
+                accountStatusElement.classList.add('activated');
+                accountStatusElement.textContent = "Activated";
+            }
+
+            // Fetch TMC balance using the normalized email
+            fetchTMCBalance(userEmail);
+        } else {
+            console.log("No user is signed in");
+        }
     });
 
-    // Log the entire response object for detailed debugging
-    console.log('BitPay API full response:', response);
-
-    const data = await response.json();
-
-    // Log the parsed data response
-    console.log('Parsed response from BitPay:', data);
-
-    if (response.ok && data.url) {
-      // If response is successful, return the payment URL to the frontend
-      console.log('Payment creation successful:', data);
-      return res.status(200).json(data);
-    } else {
-      // Log the error details
-      console.error('Error in payment creation:', data);
-      return res.status(500).json({ error: data.error || 'Error creating payment' });
+    // Firebase Authentication Logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            auth.signOut().then(() => {
+                alert("Logged out!");
+                window.location.href = 'index.html';  // Redirect to the main page or login page
+            }).catch((error) => {
+                console.error("Logout error:", error);
+            });
+        });
     }
-  } catch (error) {
-    // Catch and log any errors during the process
-    console.error('Error in payment creation request:', error);
-    return res.status(500).json({ error: error.message });
-  }
-});
+    
+    // Ensure the 'Account' section is visible on page load
+    const accountSection = document.getElementById('account');
+    if (accountSection) {
+        accountSection.style.display = 'block';  // Set to visible or any style manipulation
+    } else {
+        console.error('Element with ID "account" not found.');
+    }
 
-// API route to handle the IPN callback from BitPay
-app.post('/api/payment-callback', (req, res) => {
-  const paymentData = req.body;
+    // Function to fetch TMC balance from Firestore using email
+    function fetchTMCBalance(userEmail) {
+        console.log("Fetching TMC balance for user email:", userEmail); // Log the email
+        const userDocRef = db.collection("users").doc(userEmail);
 
-  // Log the payment data received for debugging
-  console.log('IPN Callback received:', paymentData);
+        console.log("Firestore document reference:", userDocRef.path);  // Log document path
 
-  // Handle the payment status (e.g., confirmed, failed, etc.)
-  if (paymentData.status === 'complete') {
-    console.log('Payment confirmed:', paymentData);
-    // Update your database or perform any other actions necessary
-  } else if (paymentData.status === 'failed') {
-    console.log('Payment failed:', paymentData);
-  }
+        userDocRef.get().then((doc) => {
+            if (doc.exists) {
+                const tmcBalance = parseFloat(doc.data().tmc) || 0;
+                const usdtBalance = parseFloat(doc.data().usdt) || 0;
+                const totalTMCEarned = parseFloat(doc.data().totalTMC) || 0;
 
-  // Respond to BitPay that the callback was received successfully
-  res.status(200).send('IPN callback received');
-});
+                document.getElementById('tmc-balance').textContent = `${tmcBalance.toFixed(2)} TMC`;
+                document.getElementById('usdt-balance-account').textContent = `${usdtBalance.toFixed(2)} USDT`;
+                document.getElementById('total-tmc-earned').textContent = `${totalTMCEarned.toFixed(2)} TMC`;
 
-// Get current directory (since __dirname is not available in ES Modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+                updateProgress(tmcBalance); // Update progress based on TMC balance
+            } else {
+                console.log("No such document! Check if the document ID matches the email exactly.");
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);  // Log error details
+        });
+    }
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+    // Function to update progress bar and image based on TMC balance
+    function updateProgress(tmcBalance) {
+        const progress = document.querySelector('.progress');
+        const catPhoto = document.getElementById('cat-photo');
 
-// Serve the index.html file for the root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+        // Map the TMC balance to 8 stages
+        let stage = 1;
+        if (tmcBalance >= 100 && tmcBalance < 200) {
+            stage = 2;
+        } else if (tmcBalance >= 200 && tmcBalance < 300) {
+            stage = 3;
+        } else if (tmcBalance >= 300 && tmcBalance < 400) {
+            stage = 4;
+        } else if (tmcBalance >= 400 && tmcBalance < 500) {
+            stage = 5;
+        } else if (tmcBalance >= 500 && tmcBalance < 600) {
+            stage = 6;
+        } else if (tmcBalance >= 600 && tmcBalance < 700) {
+            stage = 7;
+        } else if (tmcBalance >= 700) {
+            stage = 8;
+        }
 
-// Serve the success.html file for the success route
-app.get('/success', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'success.html'));
-});
+        // Update the progress bar width
+        progress.style.width = (stage / 8) * 100 + '%';
 
-// Start the server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+        // Update the cat photo based on the stage
+        catPhoto.src = `path/to/cat-stage-${stage}.png`;
+    }
+
+    document.getElementById('buy-btn').addEventListener('click', async function() {
+        const paymentMethod = document.getElementById('payment-options').value;
+
+        // Check if a payment method is selected
+        if (paymentMethod === 'trc20') {
+            alert('You selected TRC-20 (USDT) payment method. Proceeding to checkout.');
+            // Call the function to handle TRC-20 payment
+            await processPayment(100, 'USD', 'USDTTRC20', 'order-123-trc20');
+            
+        } else if (paymentMethod === 'btc') {
+            alert('You selected Bitcoin (BTC) payment method. Proceeding to checkout.');
+            // Call the function to handle BTC payment
+            await processPayment(100, 'USD', 'BTC', 'order-123-btc');
+            
+        } else if (paymentMethod === '') {
+            alert('Please select a payment method.');
+        } else {
+            alert('Invalid payment method selected.');
+        }
+    });
+
+    // Function to handle the payment process using BitPay API
+    async function processPayment(priceAmount, priceCurrency, orderId) {
+        try {
+            console.log('Sending payment creation request with the following data:', {
+                price: priceAmount,
+                currency: priceCurrency,
+                orderId: orderId
+            });
+
+            // Sending request to the backend API for BitPay invoice creation
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    price: priceAmount,           // Price of the product/service
+                    currency: priceCurrency,      // Currency like USD, BTC, etc.
+                    orderId: orderId              // Your order ID for internal tracking
+                }),
+            });
+
+            // Log raw response for troubleshooting
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+
+            let data;
+            try {
+                // Attempt to parse the response as JSON
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('Failed to parse response as JSON:', e);
+                alert('Error: Invalid response from the server.');
+                return;
+            }
+
+            console.log('Response data:', data); // Log parsed data for better visibility
+
+            // Redirect to the BitPay payment page if URL is available
+            if (response.ok && data.paymentUrl) {
+                window.location.href = data.paymentUrl; // Redirect to BitPay's payment page
+            } else if (response.ok && data.success) {
+                // If the response indicates success and you're staying on your site
+                window.location.href = '/success.html'; // Redirect to your custom success page
+            } else {
+                console.error('Error processing payment:', data.error || 'No payment URL returned.');
+                alert('Error: ' + (data.error || 'Unexpected error occurred.'));
+            }
+        } catch (error) {
+            console.error('Error processing payment:', error);
+            alert('Error processing payment: ' + error.message);
+        }
+    }
+
+    // Default balances (real data will be fetched from Firebase)
+    let tmcBalance = 0;  // Default TMC balance
+    let usdtBalance = 0; // Default USDT balance
+    let exchangeRate = 0; // Default exchange rate for TMC to USDT
+
+    // Get the input, slider, and balance elements
+    const tmcInput = document.getElementById('tmc-amount');
+    const tmcSlider = document.getElementById('tmc-slider');
+    const usdtInput = document.getElementById('usdt-amount');
+    const tmcBalanceDisplay = document.getElementById('tmc-balance-exchange');
+    const usdtBalanceDisplay = document.getElementById('usdt-balance-exchange');
+    const exchangeRateDisplay = document.getElementById('rate-amount'); // Rate box for displaying the exchange rate
+
+    // Firebase Authentication - Fetch balances and exchange rate when user is logged in
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            const userEmail = user.email.toLowerCase().trim(); // Normalize email to lowercase
+            
+            // Fetch TMC and USDT balances from Firestore in real-time
+            const userDocRef = db.collection("users").doc(userEmail);
+
+            // Listen to real-time updates for the user’s document
+            userDocRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    tmcBalance = parseFloat(doc.data().tmc) || 0;  // Ensure numeric TMC balance
+                    usdtBalance = parseFloat(doc.data().usdt) || 0;  // Ensure numeric USDT balance
+
+                    // Update balance displays with fetched values
+                    tmcBalanceDisplay.textContent = `${tmcBalance.toFixed(2)} TMC`;
+                    usdtBalanceDisplay.textContent = `${usdtBalance.toFixed(2)} USDT`;
+
+                    // Set slider max to TMC balance
+                    tmcSlider.max = tmcBalance;
+                    tmcSlider.value = 0;  // Start slider at 0
+                    tmcInput.value = '';  // Start input empty for the user to type
+                    updateTMCSilderBackground(0, tmcBalance); // Update slider background to reflect initial state
+                } else {
+                    console.log("No such document! Ensure the user data exists.");
+                }
+            }, (error) => {
+                console.error("Error fetching user document in real-time:", error);
+            });
+
+            // Fetch exchange rate from Firestore
+            const rateDocRef = db.collection("exchangeRates").doc("tmcToUsdt");
+
+            rateDocRef.get().then((rateDoc) => {
+                if (rateDoc.exists) {
+                    exchangeRate = parseFloat(rateDoc.data().rate);  // Ensure the rate is a floating-point number
+                    console.log("Fetched exchange rate:", exchangeRate);
+
+                    if (!isNaN(exchangeRate) && exchangeRate > 0) {
+                        exchangeRateDisplay.value = exchangeRate.toFixed(2); // Update the input's value
+                    } else {
+                        console.error("Fetched exchange rate is invalid.");
+                        exchangeRateDisplay.value = "-";
+                    }
+                } else {
+                    console.error("No exchange rate document found!");
+                    exchangeRateDisplay.value = "-";
+                }
+            }).catch((error) => {
+                console.error("Error fetching exchange rate document:", error);
+            });
+
+        } else {
+            console.log("No user is signed in");
+        }
+    });
+
+    // Sync TMC input box with slider
+    tmcInput.addEventListener('input', function () {
+        const tmcValue = parseFloat(tmcInput.value);
+        if (tmcValue <= tmcBalance && tmcValue >= 50) {
+            tmcSlider.value = tmcValue;  // Update slider handle
+            updateTMCSilderBackground(tmcValue, tmcSlider.max);
+
+            amountError.style.display = 'none'; // Hide the error message for valid amounts
+
+            // Update USDT value based on the exchange rate
+            if (exchangeRate > 0) {
+                usdtInput.value = (tmcValue * exchangeRate).toFixed(2);
+            } else {
+                usdtInput.value = "-";  // Placeholder if the exchange rate is not available
+            }
+        } else if (tmcValue > 0 && tmcValue < 50) {
+            amountError.style.display = 'block'; // Show error for amounts below 50
+            tmcInput.value = tmcSlider.value;  // Reset to valid value if out of bounds
+        } else {
+            amountError.style.display = 'none'; // Hide error if no amount is entered
+        }
+    });
+
+    // Sync slider with TMC input box
+    tmcSlider.addEventListener('input', function () {
+        const tmcValue = parseFloat(tmcSlider.value); // Get the current value of the slider
+        tmcInput.value = tmcValue; // Sync the TMC input with the slider value
+
+        if (tmcValue >= 50) {
+            amountError.style.display = 'none'; // Hide the error message if valid
+        } else {
+            amountError.style.display = 'block'; // Show the error message if the amount is less than 50
+        }
+
+        console.log("Current TMC Value:", tmcValue);
+        console.log("Current Exchange Rate:", exchangeRate);
+
+        // Check if exchange rate is valid and greater than 0
+        if (!isNaN(exchangeRate) && exchangeRate > 0) {
+            usdtInput.value = (tmcValue * exchangeRate).toFixed(2); // Calculate USDT value based on exchange rate
+            console.log("Updated USDT Value:", usdtInput.value);
+        } else {
+            usdtInput.value = "-";  // Placeholder if exchange rate is invalid
+            console.error("Invalid exchange rate. Make sure the rate is fetched correctly.");
+        }
+
+        // Update the slider background as the user moves the slider
+        updateTMCSilderBackground(tmcValue, tmcSlider.max);
+    });
+
+    // Function to update the slider background for TMC slider (Exchange section)
+    function updateTMCSilderBackground(value, maxValue) {
+        const percentage = (value / maxValue) * 100;
+        tmcSlider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
+    }
+
+    // Placeholder function for the Exchange button click
+    document.getElementById('exchange-btn').addEventListener('click', function () {
+        const tmcToExchange = parseFloat(tmcInput.value);
+        if (tmcToExchange >= 50 && tmcToExchange <= tmcBalance) {
+            const usdtToReceive = (tmcToExchange * exchangeRate).toFixed(2);
+
+            // Update Firestore with the new TMC and USDT balances
+            const userDocRef = db.collection("users").doc(auth.currentUser.email.toLowerCase().trim());
+
+            // Perform the balance update in a transaction to ensure atomicity
+            db.runTransaction((transaction) => {
+                return transaction.get(userDocRef).then((userDoc) => {
+                    if (!userDoc.exists) {
+                        throw "User document does not exist!";
+                    }
+
+                    const newTmcBalance = userDoc.data().tmc - tmcToExchange;
+                    const newUsdtBalance = userDoc.data().usdt + parseFloat(usdtToReceive);
+
+                    transaction.update(userDocRef, {
+                        tmc: newTmcBalance,
+                        usdt: newUsdtBalance
+                    });
+                });
+            }).then(() => {
+                alert(`Exchanged ${tmcToExchange} TMC for ${usdtToReceive} USDT.`);
+
+                // Automatically update the balances displayed on the page after the transaction
+                tmcInput.value = 0; // Reset TMC amount input
+                tmcSlider.value = 0; // Reset TMC slider to 0
+                usdtInput.value = "-"; // Reset USDT amount to placeholder
+
+                // Fetch updated balances and refresh the display
+                userDocRef.get().then((doc) => {
+                    if (doc.exists) {
+                        tmcBalance = parseFloat(doc.data().tmc) || 0;
+                        usdtBalance = parseFloat(doc.data().usdt) || 0;
+
+                        // Update the display with new balances
+                        tmcBalanceDisplay.textContent = `${tmcBalance.toFixed(2)} TMC`;
+                        usdtBalanceDisplay.textContent = `${usdtBalance.toFixed(2)} USDT`;
+
+                        // Set slider max to new TMC balance
+                        tmcSlider.max = tmcBalance;
+
+                        // Update slider background
+                        updateTMCSilderBackground(tmcSlider.value, tmcBalance);
+                    }
+                });
+            }).catch((error) => {
+                console.error("Transaction failed: ", error);
+                alert("Exchange failed. Please try again.");
+            });
+        } else {
+            alert("Invalid TMC amount.");
+        }
+    });
+
+    const usdtInputSend = document.getElementById('usdt-amount-send');
+    const usdtSliderSend = document.getElementById('usdt-slider-send');
+    const trcAddressInput = document.getElementById('trc20-address');
+    const sendBtn = document.getElementById('send-btn');
+    const amountError = document.getElementById('amount-error');
+    const addressError = document.getElementById('address-error');
+    const usdtBalanceDisplaySend = document.getElementById('usdt-balance-send');
+
+    // Fetch user's USDT balance and update UI
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            const userEmail = user.email.toLowerCase().trim(); // Normalize email to lowercase
+            const userDocRef = db.collection("users").doc(userEmail);
+
+            userDocRef.get().then((doc) => {
+                if (doc.exists) {
+                    const usdtBalance = parseFloat(doc.data().usdt) || 0;  // Get USDT balance from Firestore
+
+                    // Update balance display
+                    usdtBalanceDisplaySend.textContent = `${usdtBalance.toFixed(2)} USDT`;
+
+                    // Set the slider's max to the user's USDT balance
+                    usdtSliderSend.max = usdtBalance;
+                    usdtSliderSend.value = 0; // Start slider at 0
+                    usdtInputSend.value = ''; // Start input empty for the user to type
+                    updateSendSliderBackground(0, usdtSliderSend.max); // Update slider background to reflect initial state
+                } else {
+                    console.error("No such document!");
+                }
+            }).catch((error) => {
+                console.error("Error fetching user document:", error);
+            });
+        }
+    });
+
+    // Sync USDT input box with slider
+    usdtInputSend.addEventListener('input', function () {
+        const usdtValue = parseFloat(this.value);
+
+        if (usdtValue >= 50) {
+            usdtSliderSend.value = usdtValue;
+            amountError.style.display = 'none'; // Hide error if amount is valid
+            updateSendSliderBackground(usdtValue, usdtSliderSend.max);
+            checkAddressAndEnableButton();
+        } else if (usdtValue > 0 && usdtValue < 50) {
+            amountError.style.display = 'block'; // Show error if amount is below 50
+            sendBtn.disabled = true;
+        } else {
+            amountError.style.display = 'none'; // Hide error if input is empty or less than 50
+            sendBtn.disabled = true;
+        }
+    });
+
+    // Sync slider with USDT input box
+    usdtSliderSend.addEventListener('input', function () {
+        usdtInputSend.value = this.value;
+        updateSendSliderBackground(this.value, this.max);
+        checkAddressAndEnableButton();
+    });
+
+    // Validate TRC-20 USDT address and enable/disable Send button
+    trcAddressInput.addEventListener('input', function () {
+        checkAddressAndEnableButton();
+    });
+
+    // Function to check both the address and the amount validity
+    function checkAddressAndEnableButton() {
+        const usdtAddress = trcAddressInput.value.trim();
+        const usdtAmount = parseFloat(usdtInputSend.value);
+
+        const isValidAddress = validateTRC20Address(usdtAddress);
+        
+        if (usdtAddress.length > 0) { // Only show error when user typed or pasted an address
+            if (isValidAddress && usdtAmount >= 50) {
+                addressError.style.display = 'none';
+                sendBtn.disabled = false;
+            } else {
+                if (!isValidAddress) {
+                    addressError.style.display = 'block';
+                }
+                sendBtn.disabled = true;
+            }
+        }
+    }
+
+    // Placeholder function to validate TRC-20 address (length and pattern check)
+    function validateTRC20Address(address) {
+        // TRC-20 addresses are typically 34 characters and start with 'T'
+        return address.length === 34 && address.startsWith('T');
+    }
+
+    // Handle Send button click
+    sendBtn.addEventListener('click', function () {
+        const usdtAddress = trcAddressInput.value.trim();
+        const usdtAmount = parseFloat(usdtInputSend.value);
+        
+        if (usdtAmount >= 50 && validateTRC20Address(usdtAddress)) {
+            alert(`Sending ${usdtAmount} USDT to ${usdtAddress}. Transaction pending confirmation.`);
+
+            // Send the transaction details to Firestore for admin processing
+            db.collection("pendingTransactions").add({
+                userId: auth.currentUser.email,
+                usdtAmount: usdtAmount,
+                usdtAddress: usdtAddress,
+                status: 'Pending', // Transaction status
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for the transaction
+            }).then(() => {
+                // Transaction successfully logged
+                alert("Transaction successfully logged. It will be processed within 24 hours.");
+
+                // Reset form after submission
+                usdtInputSend.value = ''; // Clear USDT input
+                usdtSliderSend.value = 0; // Reset slider to 0
+                trcAddressInput.value = ''; // Clear the address input
+                sendBtn.disabled = true; // Disable the send button
+
+                // Hide error messages
+                addressError.style.display = 'none';
+                amountError.style.display = 'none';
+
+                // Update the slider background to reflect reset state
+                updateSendSliderBackground(0, usdtSliderSend.max);
+            }).catch((error) => {
+                // Handle error in transaction logging
+                console.error("Error submitting transaction:", error);
+                alert("An error occurred while logging the transaction. Please try again.");
+            });
+        }
+    });
+
+    // Update the slider background for Send Crypto section based on its value
+    function updateSendSliderBackground(value, maxValue) {
+        const percentage = (value / maxValue) * 100;
+        const slider = document.querySelector('#send input[type="range"]');
+        
+        slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
+    }
+    
+    // Change Password Logic
+    const changePasswordLink = document.getElementById('change-password-link');
+    if (changePasswordLink) {
+        changePasswordLink.addEventListener('click', function () {
+            const user = auth.currentUser;
+            if (user) {
+                auth.sendPasswordResetEmail(user.email)
+                    .then(() => {
+                        alert("A password reset email has been sent to " + user.email);
+                    })
+                    .catch((error) => {
+                        console.error("Error sending password reset email:", error);
+                    });
+            } else {
+                alert("No user is logged in.");
+            }
+        });
+    }
+
+    // Change Language Logic
+    function changeLanguage(languageCode) {
+        switch (languageCode) {
+            case 'en':
+                alert("Language switched to English.");
+                break;
+            case 'es':
+                alert("Idioma cambiado a Español.");
+                break;
+            case 'tr':
+                alert("Dil Türkçe olarak değiştirildi.");
+                break;
+            default:
+                alert("Language not supported.");
+        }
+    }
+
+    // Handle language dropdown functionality
+    const languageDropdownBtn = document.getElementById('language-dropdown-btn');
+    const languageOptions = document.getElementById('language-options');
+
+    if (languageDropdownBtn) {
+        languageDropdownBtn.addEventListener('click', () => {
+            languageOptions.classList.toggle('show'); // Toggle visibility of language options
+        });
+    }
+
+    // Contact Support - Store message in Firebase
+    const sendMessageBtn = document.getElementById('send-message-btn');
+    if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', function () {
+            const message = document.getElementById('contact-message').value;
+            const user = auth.currentUser;
+
+            if (message && user) {
+                db.collection("supportMessages").add({
+                    uid: user.uid,
+                    email: user.email,
+                    message: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    document.getElementById('message-status').textContent = "Message sent successfully!";
+                    document.getElementById('contact-message').value = ''; // Clear the textarea
+                })
+                .catch((error) => {
+                    console.error("Error sending message: ", error);
+                    document.getElementById('message-status').textContent = "Failed to send message.";
+                });
+            } else {
+                document.getElementById('message-status').textContent = "Please enter a message.";
+            }
+        });
+    }
+
 });
