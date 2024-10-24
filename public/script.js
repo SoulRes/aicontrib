@@ -346,50 +346,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to handle the payment process using BTCPay API
     async function processPayment(priceAmount, priceCurrency, orderId) {
-      try {
-        console.log('Sending payment creation request with the following data:', {
-          price: priceAmount,
-          currency: priceCurrency,
-          orderId: orderId  // Ensure this is not "BTC"
-        });
-
-        // Sending request to the backend API for BTCPay invoice creation
-        const response = await fetch('/api/create-payment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            price: priceAmount,          // Price of the product/service
-            currency: priceCurrency,     // Currency like USD
-            orderId: orderId             // Valid order ID
-          }),
-        });
-
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-
-        let data;
         try {
-          data = JSON.parse(responseText);
-        } catch (e) {
-          console.error('Failed to parse response as JSON:', e);
-          alert('Error: Invalid response from the server.');
-          return;
-        }
+            console.log('Sending payment creation request with the following data:', {
+                price: priceAmount,
+                currency: priceCurrency,
+                orderId: orderId
+            });
 
-        console.log('Response data:', data);
+            // Sending request to the backend API for BTCPay invoice creation
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    price: priceAmount,           // Price of the product/service
+                    currency: priceCurrency,      // Currency like USD, BTC, etc.
+                    orderId: orderId              // Your order ID for internal tracking
+                }),
+            });
 
-        if (response.ok && data.url) {
-          window.location.href = data.url;
-        } else {
-          console.error('Error processing payment:', data.error || 'No payment URL returned.');
-          alert('Error: ' + (data.error || 'Unexpected error occurred.'));
+            // Log raw response for troubleshooting
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+
+            let data;
+            try {
+                // Attempt to parse the response as JSON
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('Failed to parse response as JSON:', e);
+                alert('Error: Invalid response from the server.');
+                return;
+            }
+
+            console.log('Response data:', data); // Log parsed data for better visibility
+
+            // Redirect to the BTCPay payment page if URL is available
+            if (response.ok && data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+            } else {
+                console.error('Error processing payment:', data.error || 'No payment URL returned.');
+                alert('Error: ' + (data.error || 'Unexpected error occurred.'));
+            }
+        } catch (error) {
+            console.error('Error processing payment:', error);
+            alert('Error processing payment: ' + error.message);
         }
-      } catch (error) {
-        console.error('Error processing payment:', error);
-        alert('Error processing payment: ' + error.message);
-      }
     }
 
     // Default balances (real data will be fetched from Firebase)

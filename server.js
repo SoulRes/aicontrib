@@ -68,7 +68,7 @@ app.post('/api/create-payment', async (req, res) => {
     if (response.ok && data.checkoutLink) {
       // If response is successful, return the payment URL to the frontend
       console.log('Payment creation successful:', data);
-      return res.status(200).json(data);
+      return res.status(200).json({ paymentUrl: data.checkoutLink });
     } else {
       // Log the error details
       console.error('Error in payment creation:', data);
