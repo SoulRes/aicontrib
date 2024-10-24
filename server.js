@@ -1,3 +1,4 @@
+// Import necessary modules using ES Modules syntax
 import express from 'express';
 import fetch from 'node-fetch';
 import path from 'path';
@@ -16,6 +17,7 @@ app.use(cors()); // Allow requests from any origin
 
 // Log API key and other relevant variables to verify they are loaded correctly
 console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
+console.log('Store ID:', process.env.BTCPAY_STORE_ID);
 
 // API route to handle payment creation using BitPay
 app.post('/api/create-payment', async (req, res) => {
@@ -25,14 +27,15 @@ app.post('/api/create-payment', async (req, res) => {
   console.log('Creating payment with the following data:', {
     price,
     currency,
-    orderId
+    orderId,
   });
 
   try {
-    const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
+    // Use the correct BitPay URL structure with your store ID
+    const response = await fetch(`${process.env.BITPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API key in the token format for authorization
+        'Authorization': `token ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -51,14 +54,14 @@ app.post('/api/create-payment', async (req, res) => {
     // Log the parsed data response
     console.log('Parsed response from BitPay:', data);
 
-    if (response.ok && data.url) {
+    if (response.ok && data.checkoutLink) {
       // If response is successful, return the payment URL to the frontend
       console.log('Payment creation successful:', data);
       return res.status(200).json(data);
     } else {
       // Log the error details
       console.error('Error in payment creation:', data);
-      return res.status(500).json({ error: data.error || 'Error creating payment' });
+      return res.status(500).json({ error: data.message || 'Error creating payment' });
     }
   } catch (error) {
     // Catch and log any errors during the process
@@ -103,4 +106,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
