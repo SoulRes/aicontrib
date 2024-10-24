@@ -5,17 +5,17 @@ export default async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { price_amount, price_currency, order_id } = req.body;
+  const { price, currency, orderId } = req.body;
 
   // Log the request data and environment variables for debugging
   console.log('Creating payment with the following data:', {
-    price_amount,
-    price_currency,
-    order_id,
+    price,
+    currency,
+    orderId,
     ipn_callback_url: process.env.IPN_CALLBACK_URL,
   });
 
-  console.log('BitPay API Key:', process.env.BITPAY_API_KEY);
+  console.log('API Key:', process.env.BITPAY_API_KEY);
   console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
 
   if (!process.env.BITPAY_API_KEY || !process.env.IPN_CALLBACK_URL) {
@@ -23,31 +23,37 @@ export default async (req, res) => {
   }
 
   try {
+    // Send request to BitPay API to create the invoice
     const response = await fetch(`${process.env.BITPAY_URL}/invoices`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${process.env.BITPAY_API_KEY}`, // Use BitPay API token for authorization
+        'Authorization': `Basic ${process.env.BITPAY_API_KEY}`, // Use the API Key
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        price: price_amount,          // Price of the product/service
-        currency: price_currency,     // Currency (e.g., USD, BTC)
-        orderId: order_id,            // Order ID for tracking purposes
-        notificationURL: process.env.IPN_CALLBACK_URL, // Notification callback URL
+        price,         // Price of the product/service
+        currency,      // Currency (e.g., USD, BTC)
+        orderId,       // Your custom order ID
+        notificationURL: process.env.IPN_CALLBACK_URL, // IPN Callback URL for notifications
       }),
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type');
 
-    // Log the parsed response data for debugging
-    console.log('Parsed response from BitPay:', data);
-
-    if (response.ok && data.url) {
-      // If successful, return the payment URL to the frontend
-      return res.status(200).json(data);
+    // Ensure response is JSON
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      
+      if (response.ok && data.url) {
+        return res.status(200).json(data);  // Return payment URL to frontend
+      } else {
+        console.error('Error creating payment:', data);
+        return res.status(response.status).json({ error: data.error || 'Error creating payment' });
+      }
     } else {
-      console.error('Error creating payment:', data);
-      return res.status(500).json({ error: data.message || 'Error creating payment' });
+      const text = await response.text();
+      console.error('Unexpected response format:', text);
+      return res.status(500).json({ error: 'Unexpected response format from BitPay' });
     }
   } catch (error) {
     console.error('Error creating payment:', error);
