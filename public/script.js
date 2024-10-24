@@ -360,9 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    price: priceAmount,           // Price of the product/service
-                    currency: priceCurrency,      // Currency like USD, BTC, etc.
-                    orderId: orderId              // Your order ID for internal tracking
+                    price: priceAmount,
+                    currency: priceCurrency,
+                    orderId: orderId
                 }),
             });
 
@@ -383,8 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Response data:', data); // Log parsed data for better visibility
 
             // Redirect to the BTCPay payment page if URL is available
-            if (response.ok && data.paymentUrl) {
-                window.location.href = data.paymentUrl;
+            if (response.ok && data.checkoutLink) {
+                window.location.href = data.checkoutLink;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
