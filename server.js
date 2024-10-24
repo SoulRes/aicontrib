@@ -15,13 +15,11 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // Allow requests from any origin
 
-// Log environment variables for debugging
-console.log('BtcPay API Key:', process.env.BTCPAY_API_KEY);
-console.log('BtcPay Store ID:', process.env.BTCPAY_STORE_ID);
-console.log('BtcPay URL:', process.env.BTCPAY_URL);
-console.log('IPN Callback URL:', process.env.IPN_CALLBACK_URL);
+// Log API key and other relevant variables to verify they are loaded correctly
+console.log('BTCPay API Key:', process.env.BTCPAY_API_KEY);
+console.log('BTCPay Store ID:', process.env.BTCPAY_STORE_ID);
 
-// API route to handle payment creation using BtcPay
+// API route to handle payment creation using BTCPay
 app.post('/api/create-payment', async (req, res) => {
   const { price, currency, orderId } = req.body;
 
@@ -29,52 +27,43 @@ app.post('/api/create-payment', async (req, res) => {
   console.log('Creating payment with the following data:', {
     price,
     currency,
-    orderId,
+    orderId
   });
 
-  if (!process.env.BTCPAY_API_KEY || !process.env.BTCPAY_STORE_ID || !process.env.BTCPAY_URL) {
-    console.error('Missing required environment variables');
-    return res.status(500).json({ error: 'Missing required environment variables.' });
-  }
-
   try {
-    const apiUrl = `${process.env.BTCPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`;
-    console.log('BtcPay API URL:', apiUrl);
+    // Construct the API URL, ensuring you're using the store-specific URL
+    const btcpayUrl = `${process.env.BTCPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`;
 
-    const response = await fetch(apiUrl, {
+    const response = await fetch(btcpayUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `token ${process.env.BTCPAY_API_KEY}`, // Use BtcPay API token for authorization
+        'Authorization': `token ${process.env.BTCPAY_API_KEY}`, // Use BTCPay API token for authorization
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         metadata: {
-          orderId: orderId,         // Order ID for tracking purposes
-          itemDesc: "My Product",   // Description of the product
+          orderId: orderId,  // Order ID for tracking purposes
+          itemDesc: "My Product", // Provide description
           posData: {}
         },
         checkout: {
-          speedPolicy: "HighSpeed",       // Fast transaction processing
-          expirationMinutes: 90,          // Payment expiration time
-          monitoringMinutes: 90,          // Monitoring time for payment confirmations
-          redirectURL: process.env.SUCCESS_URL || "https://aicontrib.com/success", // Redirect to success page
-          redirectAutomatically: true,    // Redirect automatically after payment
-          requiresRefundEmail: false
+          speedPolicy: "HighSpeed", // Payment speed policy
+          redirectURL: process.env.SUCCESS_URL, // URL to redirect after success
+          redirectAutomatically: true,
+          requiresRefundEmail: false,
         },
-        amount: price,            // Price of the product/service
-        currency: currency,        // Currency (e.g., USD, BTC)
-        additionalSearchTerms: ["product", "my-store"] // Optional search terms
+        amount: price,       // Price of the product/service
+        currency: currency,  // Currency (e.g., USD, BTC)
       }),
     });
 
     // Log the entire response object for detailed debugging
-    console.log('BtcPay API response status:', response.status);
-    console.log('BtcPay API headers:', response.headers);
+    console.log('BTCPay API full response:', response);
 
     const data = await response.json();
 
     // Log the parsed data response
-    console.log('Parsed response from BtcPay:', data);
+    console.log('Parsed response from BTCPay:', data);
 
     if (response.ok && data.checkoutLink) {
       // If response is successful, return the payment URL to the frontend
@@ -83,7 +72,7 @@ app.post('/api/create-payment', async (req, res) => {
     } else {
       // Log the error details
       console.error('Error in payment creation:', data);
-      return res.status(500).json({ error: data.message || 'Error creating payment' });
+      return res.status(500).json({ error: data.error || 'Error creating payment' });
     }
   } catch (error) {
     // Catch and log any errors during the process
@@ -92,7 +81,7 @@ app.post('/api/create-payment', async (req, res) => {
   }
 });
 
-// API route to handle the IPN callback from BtcPay
+// API route to handle the IPN callback from BTCPay
 app.post('/api/payment-callback', (req, res) => {
   const paymentData = req.body;
 
@@ -107,7 +96,7 @@ app.post('/api/payment-callback', (req, res) => {
     console.log('Payment failed:', paymentData);
   }
 
-  // Respond to BtcPay that the callback was received successfully
+  // Respond to BTCPay that the callback was received successfully
   res.status(200).send('IPN callback received');
 });
 
@@ -128,4 +117,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
