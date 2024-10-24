@@ -65,10 +65,11 @@ app.post('/api/create-payment', async (req, res) => {
     // Log the parsed data response
     console.log('Parsed response from BTCPay:', data);
 
-    if (response.ok && data.checkoutLink) {
+    if (response.ok && data.id) {
       // If response is successful, return the payment URL to the frontend
-      console.log('Payment creation successful:', data);
-      return res.status(200).json({ paymentUrl: data.checkoutLink });
+      const checkoutUrl = `${process.env.BTCPAY_URL}/i/${data.id}`; // Construct the checkout URL
+      console.log('Payment creation successful. Redirecting to:', checkoutUrl);
+      return res.status(200).json({ paymentUrl: checkoutUrl });
     } else {
       // Log the error details
       console.error('Error in payment creation:', data);
