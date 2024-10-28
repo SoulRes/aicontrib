@@ -393,6 +393,48 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Error processing payment: ' + error.message);
         }
     }
+    
+    async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
+      try {
+        const subject = 'Payment Confirmation';
+        const htmlContent = `
+          <p>Thank you for your payment!</p>
+          <p><strong>Order ID:</strong> ${orderId}</p>
+          <p><strong>Amount:</strong> ${amount} ${currency}</p>
+          <p>We appreciate your business and look forward to serving you again.</p>
+        `;
+
+        const response = await fetch('https://api.sparkpost.com/api/v1/transmissions', {
+          method: 'POST',
+          headers: {
+            'Authorization': process.env.SPARKPOST_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            options: {
+              sandbox: false, // Set to true only if using SparkPost's sandbox mode
+            },
+            content: {
+              from: 'noreply@aicontrib.com', // Replace with your verified sending domain email
+              subject: subject,
+              html: htmlContent,
+            },
+            recipients: [{ address: toEmail }],
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          console.log('Email sent successfully:', data);
+          return data;
+        } else {
+          console.error('Failed to send email:', data);
+          throw new Error(data.errors[0]?.message || 'Unknown error');
+        }
+      } catch (error) {
+        console.error('Error sending email:', error.message);
+      }
+    }
 
     // Default balances (real data will be fetched from Firebase)
     let tmcBalance = 0;  // Default TMC balance

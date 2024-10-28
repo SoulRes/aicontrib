@@ -685,6 +685,46 @@ footer p {
     color: #333;
 }
 
+/* Download Section Styling */
+#download {
+    padding: 20px;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.file-info {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.download-action {
+    margin-top: 15px;
+}
+
+#download-btn {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+#download-btn:hover {
+    background-color: #0056b3;
+}
+
+.download-message {
+    color: #28a745;
+    margin-top: 15px;
+    font-size: 1em;
+    font-weight: bold;
+}
+
 /* General Styles for Exchange Section */
 .content-section {
     padding: 20px;
