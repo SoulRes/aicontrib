@@ -436,6 +436,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Function to handle download action
+    document.getElementById('download-btn').addEventListener('click', function () {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = 'path/to/your/file.pdf';  // Replace with your file URL
+        downloadLink.download = 'User_Manual.pdf';    // Set the download file name
+        downloadLink.click();
+
+        // Show download confirmation message
+        const message = document.getElementById('download-message');
+        message.style.display = 'block';
+
+        // Hide the message after a short delay
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 3000);
+    });
+
     // Default balances (real data will be fetched from Firebase)
     let tmcBalance = 0;  // Default TMC balance
     let usdtBalance = 0; // Default USDT balance
