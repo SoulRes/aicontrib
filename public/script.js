@@ -212,51 +212,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Fetch TMC balance and display user email in personal cabinet
+    // Track and manage user authentication and account status
     auth.onAuthStateChanged(async (user) => {
         if (user) {
+            const userEmail = user.email.toLowerCase(); // Normalize email
             const emailElement = document.getElementById('user-email');
             const emailSettingsElement = document.getElementById('user-email-settings');
             const accountStatusElement = document.getElementById('account-status');
-            const downloadSectionLink = document.getElementById('download-section-link'); // Link to the Download section
-
-            const userEmail = user.email.toLowerCase(); // Normalize email to lowercase
+            const downloadSectionLink = document.getElementById('download-section-link');
+            
             console.log("Normalized user email:", userEmail); // Log the normalized email
 
-            // Display the user’s email in the account section
-            if (emailElement) {
-                emailElement.textContent = user.email;
-            }
+            // Display user’s email in the appropriate sections
+            displayUserEmail(emailElement, userEmail);
+            displayUserEmail(emailSettingsElement, userEmail);
 
-            if (emailSettingsElement) {
-                emailSettingsElement.textContent = user.email;
-            }
-
-            // Fetch account status from Firestore and update the display
+            // Fetch account status and update UI accordingly
             const userStatus = await fetchAccountStatus(user.uid);
+            updateAccountStatusUI(userStatus, accountStatusElement, downloadSectionLink);
+        } else {
+            console.log("No user is signed in");
+        }
+    });
 
-            if (accountStatusElement) {
-                if (userStatus === 'Activated') {
-                    accountStatusElement.classList.remove('not-activated');
-                    accountStatusElement.classList.add('activated');
-                    accountStatusElement.textContent = "Activated";
-                    
-                    // Enable the Download section if the account is activated
-                    if (downloadSectionLink) {
-                        downloadSectionLink.classList.remove('disabled');
-                        downloadSectionLink.style.pointerEvents = 'auto'; // Enable clicking
-                    }
-                } else {
-                    accountStatusElement.classList.add('not-activated');
-                    accountStatusElement.textContent = "Not Activated";
+    // Helper to display user's email in a specific element
+    function displayUserEmail(element, email) {
+        if (element) {
+            element.textContent = email;
+        }
+    }
 
-                    // Disable the Download section if the account is not activated
-                    if (downloadSectionLink) {
-                        downloadSectionLink.classList.add('disabled');
-                        downloadSectionLink.style.pointerEvents = 'none'; // Disable clicking
-                    }
-                }
-            }
+    // Update UI based on account activation status
+    function updateAccountStatusUI(userStatus, statusElement, downloadLink) {
+        const isActivated = userStatus === 'Activated';
+
+        // Update account status display
+        if (statusElement) {
+            statusElement.classList.toggle('activated', isActivated);
+            statusElement.classList.toggle('not-activated', !isActivated);
+            statusElement.textContent = isActivated ? "Activated" : "Not Activated";
+        }
+
+        // Enable or disable the download section based on activation status
+        if (downloadLink) {
+            downloadLink.classList.toggle('disabled', !isActivated);
+            downloadLink.style.pointerEvents = isActivated ? 'auto' : 'none';
+        }
+    }
+
+    // Function to retrieve the account status from Firestore
+    async function fetchAccountStatus(userId) {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            return doc.exists && doc.data().status ? doc.data().status : 'Not Activated';
+        } catch (error) {
+            console.error("Error fetching account status:", error);
+            return 'Not Activated'; // Default to 'Not Activated' in case of an error
+        }
+    }
 
             // Fetch TMC balance using the normalized email
             fetchTMCBalance(userEmail);
