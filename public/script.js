@@ -67,13 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.log("Login form not found on this page."); // Log this to avoid throwing errors
     }
-    
-    const downloadSection = document.getElementById('download');
-    if (downloadSection) {
-        switchSection('download');
-    } else {
-        console.error("Section 'download' not found.");
-    }
 
     // Firebase Configuration
     const firebaseConfig = {
