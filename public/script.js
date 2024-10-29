@@ -67,6 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.log("Login form not found on this page."); // Log this to avoid throwing errors
     }
+    
+    switchSection('account');
 
     // Firebase Configuration
     const firebaseConfig = {
