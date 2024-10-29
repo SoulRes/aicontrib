@@ -26,6 +26,39 @@ function switchSection(sectionId) {
     }
 }
 
+// JavaScript to switch between login and signup forms
+function openForm(formType) {
+    // Hide all forms
+    document.querySelectorAll('.form-content').forEach(form => {
+        if (form) {
+            form.style.display = 'none';
+        }
+    });
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        if (tab) {
+            tab.classList.remove('active');
+        }
+    });
+
+    // Show the selected form and activate the corresponding tab
+    const selectedForm = document.getElementById(formType);
+    const activeTab = document.querySelector(`[onclick="openForm('${formType}')"]`);
+
+    if (selectedForm) {
+        selectedForm.style.display = 'block';
+    } else {
+        console.error(`Form with id '${formType}' not found.`);
+    }
+
+    if (activeTab) {
+        activeTab.classList.add('active');
+    } else {
+        console.error(`Tab with action 'openForm(${formType})' not found.`);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure the login form is shown by default when the page loads
     const loginFormElement = document.getElementById('login'); // Check if the login form exists
@@ -80,39 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Call the function to fetch the rate on page load
     fetchRate(); 
-
-    // JavaScript to switch between login and signup forms
-    function openForm(formType) {
-        // Hide all forms
-        document.querySelectorAll('.form-content').forEach(form => {
-            if (form) {
-                form.style.display = 'none';
-            }
-        });
-
-        // Remove active class from all tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            if (tab) {
-                tab.classList.remove('active');
-            }
-        });
-
-        // Show the selected form and activate the corresponding tab
-        const selectedForm = document.getElementById(formType);
-        const activeTab = document.querySelector(`[onclick="openForm('${formType}')"]`);
-
-        if (selectedForm) {
-            selectedForm.style.display = 'block';
-        } else {
-            console.error(`Form with id '${formType}' not found.`);
-        }
-
-        if (activeTab) {
-            activeTab.classList.add('active');
-        } else {
-            console.error(`Tab with action 'openForm(${formType})' not found.`);
-        }
-    }
 
     // Firebase Authentication - Signup
     const signupForm = document.getElementById('signup-form');
