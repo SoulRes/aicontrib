@@ -685,6 +685,14 @@ footer p {
     color: #333;
 }
 
+/* Style for disabled menu item */
+.menu-item.disabled {
+    color: gray;
+    cursor: not-allowed;
+    opacity: 0.6; /* Makes the item look slightly darker */
+    pointer-events: none; /* Disables click events */
+}
+
 /* Download Section Styling */
 #download {
     padding: 20px;

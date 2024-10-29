@@ -223,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const emailElement = document.getElementById('user-email');
             const emailSettingsElement = document.getElementById('user-email-settings');
             const accountStatusElement = document.getElementById('account-status');
+            const downloadSectionLink = document.getElementById('download-section-link'); // Link to the Download section
 
             const userEmail = user.email.toLowerCase(); // Normalize email to lowercase
             console.log("Normalized user email:", userEmail); // Log the normalized email
@@ -244,9 +245,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     accountStatusElement.classList.remove('not-activated');
                     accountStatusElement.classList.add('activated');
                     accountStatusElement.textContent = "Activated";
+                    
+                    // Enable the Download section if the account is activated
+                    if (downloadSectionLink) {
+                        downloadSectionLink.classList.remove('disabled');
+                        downloadSectionLink.style.pointerEvents = 'auto'; // Enable clicking
+                    }
                 } else {
                     accountStatusElement.classList.add('not-activated');
                     accountStatusElement.textContent = "Not Activated";
+
+                    // Disable the Download section if the account is not activated
+                    if (downloadSectionLink) {
+                        downloadSectionLink.classList.add('disabled');
+                        downloadSectionLink.style.pointerEvents = 'none'; // Disable clicking
+                    }
                 }
             }
 
