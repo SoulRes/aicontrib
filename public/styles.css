@@ -515,6 +515,14 @@ footer p {
     background-color: #444;
 }
 
+/* Style for disabled menu item */
+.menu-item.disabled {
+    color: gray;
+    cursor: not-allowed;
+    opacity: 0.6; /* Makes the item look slightly darker */
+    pointer-events: none; /* Disables click events */
+}
+
 /* Content Section */
 .content {
     flex-grow: 1;
@@ -683,14 +691,6 @@ footer p {
 /* Styling for balance sections */
 #tmc-balance, #usdt-balance {
     color: #333;
-}
-
-/* Style for disabled menu item */
-.menu-item.disabled {
-    color: gray;
-    cursor: not-allowed;
-    opacity: 0.6; /* Makes the item look slightly darker */
-    pointer-events: none; /* Disables click events */
 }
 
 /* Download Section Styling */
