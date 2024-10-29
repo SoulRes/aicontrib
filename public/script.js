@@ -227,13 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-// Display user email in multiple elements
-function displayUserEmail(email) {
-    const emailElements = [document.getElementById('user-email'), document.getElementById('user-email-settings')];
-    emailElements.forEach(element => {
-        if (element) element.textContent = email;
-    });
-}
+    // Display user email in multiple elements
+    function displayUserEmail(email) {
+        const emailElements = [document.getElementById('user-email'), document.getElementById('user-email-settings')];
+        emailElements.forEach(element => {
+            if (element) element.textContent = email;
+        });
+    }
 
     // Update account status and download section access based on activation
     function updateAccountStatusUI(userStatus) {
