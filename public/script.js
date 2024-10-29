@@ -177,7 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tmc: 0,           // Initial TMC balance
             totalTMC: 0,  
             usdt: 0, 
+            status: 'Not Activated',
             email: userEmail  // Save the user's email for reference
+            
         })
         .then(() => {
             console.log("User document created with initial TMC and Total TMC values!");
@@ -216,15 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fetch TMC balance and display user email in personal cabinet
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             const emailElement = document.getElementById('user-email');
             const emailSettingsElement = document.getElementById('user-email-settings');
             const accountStatusElement = document.getElementById('account-status');
 
-            const userEmail = user.email.toLowerCase();  // Normalize email to lowercase
-            console.log("Normalized user email:", userEmail);  // Log the normalized email
+            const userEmail = user.email.toLowerCase(); // Normalize email to lowercase
+            console.log("Normalized user email:", userEmail); // Log the normalized email
 
+            // Display the user’s email in the account section
             if (emailElement) {
                 emailElement.textContent = user.email;
             }
@@ -233,10 +236,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 emailSettingsElement.textContent = user.email;
             }
 
-            if (user.emailVerified && accountStatusElement) {
-                accountStatusElement.classList.remove('not-activated');
-                accountStatusElement.classList.add('activated');
-                accountStatusElement.textContent = "Activated";
+            // Fetch account status from Firestore and update the display
+            const userStatus = await fetchAccountStatus(user.uid);
+
+            if (accountStatusElement) {
+                if (userStatus === 'Activated') {
+                    accountStatusElement.classList.remove('not-activated');
+                    accountStatusElement.classList.add('activated');
+                    accountStatusElement.textContent = "Activated";
+                } else {
+                    accountStatusElement.classList.add('not-activated');
+                    accountStatusElement.textContent = "Not Activated";
+                }
             }
 
             // Fetch TMC balance using the normalized email
@@ -245,6 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("No user is signed in");
         }
     });
+
+    // Function to retrieve the account status from Firestore
+    async function fetchAccountStatus(userId) {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            return doc.exists && doc.data().status ? doc.data().status : 'Not Activated';
+        } catch (error) {
+            console.error("Error fetching account status:", error);
+            return 'Not Activated'; // Default to 'Not Activated' in case of an error
+        }
+    }
 
     // Firebase Authentication Logout
     const logoutBtn = document.getElementById('logout-btn');

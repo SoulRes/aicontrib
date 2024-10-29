@@ -1,7 +1,5 @@
 import sendConfirmationEmail from './sendConfirmationEmail'; // Import your email-sending function
-
-// Mock database structure for storing orders (use a real database in production)
-const orders = {}; // Replace with your actual database logic
+import db from './firebase'; // Import Firebase Firestore configuration
 
 // Callback function to handle payment status updates from BTCPay (IPN Callback)
 export default async (req, res) => {
@@ -18,11 +16,12 @@ export default async (req, res) => {
     if (status === 'complete') {
       console.log('Payment confirmed:', orderId);
 
-      // Retrieve the order details from your database
-      const orderDetails = orders[orderId]; // Replace with actual DB query, e.g., findOrderById(orderId)
-
-      if (orderDetails) {
-        const { email, price, currency } = orderDetails;
+      // Retrieve the order details from Firestore
+      const orderDoc = await db.collection('orders').doc(orderId).get();
+      
+      if (orderDoc.exists) {
+        const orderDetails = orderDoc.data();
+        const { email, price, currency, userId } = orderDetails;
 
         // Send a payment confirmation email to the user
         await sendConfirmationEmail(
@@ -35,18 +34,20 @@ export default async (req, res) => {
         );
 
         console.log('Confirmation email sent to:', email);
+
+        // Update the user's account status to 'Activated' in Firestore
+        await db.collection('users').doc(userId).update({ status: 'Activated' });
+
+        console.log('User account status set to "Activated" for userId:', userId);
       } else {
         console.error(`Order not found for orderId: ${orderId}`);
       }
-      
-      // Optional: Mark the order as paid in your database if necessary
-      // await markOrderAsPaid(orderId);
 
     } else if (status === 'failed') {
       console.log('Payment failed:', orderId);
 
       // Handle failed payments as necessary (e.g., mark as failed in your database)
-      // await markOrderAsFailed(orderId);
+      await db.collection('orders').doc(orderId).update({ status: 'failed' });
     }
 
     // Send response to BTCPay to confirm receipt of IPN
