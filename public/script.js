@@ -212,72 +212,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Track and manage user authentication and account status
+    // Handle authenticated user display settings
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userEmail = user.email.toLowerCase(); // Normalize email
-            const emailElement = document.getElementById('user-email');
-            const emailSettingsElement = document.getElementById('user-email-settings');
-            const accountStatusElement = document.getElementById('account-status');
-            const downloadSectionLink = document.getElementById('download-section-link');
+            console.log("Normalized user email:", userEmail);
+
+            displayUserEmail(userEmail); // Show email in relevant sections
+            const userStatus = await fetchAccountStatus(user.uid); // Fetch and display account status
+            updateAccountStatusUI(userStatus);
+            fetchTMCBalance(userEmail); // Fetch and display TMC balance
+        } else {
+            console.log("No user is signed in");
+        }
+    });
+
+// Display user email in multiple elements
+function displayUserEmail(email) {
+    const emailElements = [document.getElementById('user-email'), document.getElementById('user-email-settings')];
+    emailElements.forEach(element => {
+        if (element) element.textContent = email;
+    });
+}
+
+    // Update account status and download section access based on activation
+    function updateAccountStatusUI(userStatus) {
+        const accountStatusElement = document.getElementById('account-status');
+        const downloadSectionLink = document.getElementById('download-section-link');
+
+        if (accountStatusElement && downloadSectionLink) {
+            const isActivated = userStatus === 'Activated';
             
-            console.log("Normalized user email:", userEmail); // Log the normalized email
+            accountStatusElement.textContent = isActivated ? "Activated" : "Not Activated";
+            accountStatusElement.classList.toggle('activated', isActivated);
+            accountStatusElement.classList.toggle('not-activated', !isActivated);
 
-            // Display user’s email in the appropriate sections
-            displayUserEmail(emailElement, userEmail);
-            displayUserEmail(emailSettingsElement, userEmail);
-
-            // Fetch account status and update UI accordingly
-            const userStatus = await fetchAccountStatus(user.uid);
-            updateAccountStatusUI(userStatus, accountStatusElement, downloadSectionLink);
-        } else {
-            console.log("No user is signed in");
-        }
-    });
-
-    // Helper to display user's email in a specific element
-    function displayUserEmail(element, email) {
-        if (element) {
-            element.textContent = email;
+            downloadSectionLink.classList.toggle('disabled', !isActivated);
+            downloadSectionLink.style.pointerEvents = isActivated ? 'auto' : 'none';
         }
     }
-
-    // Update UI based on account activation status
-    function updateAccountStatusUI(userStatus, statusElement, downloadLink) {
-        const isActivated = userStatus === 'Activated';
-
-        // Update account status display
-        if (statusElement) {
-            statusElement.classList.toggle('activated', isActivated);
-            statusElement.classList.toggle('not-activated', !isActivated);
-            statusElement.textContent = isActivated ? "Activated" : "Not Activated";
-        }
-
-        // Enable or disable the download section based on activation status
-        if (downloadLink) {
-            downloadLink.classList.toggle('disabled', !isActivated);
-            downloadLink.style.pointerEvents = isActivated ? 'auto' : 'none';
-        }
-    }
-
-    // Function to retrieve the account status from Firestore
-    async function fetchAccountStatus(userId) {
-        try {
-            const doc = await db.collection('users').doc(userId).get();
-            return doc.exists && doc.data().status ? doc.data().status : 'Not Activated';
-        } catch (error) {
-            console.error("Error fetching account status:", error);
-            return 'Not Activated'; // Default to 'Not Activated' in case of an error
-        }
-    }
-
-            // Fetch TMC balance using the normalized email
-            fetchTMCBalance(userEmail);
-        } else {
-            console.log("No user is signed in");
-        }
-    });
-
+    
     // Function to retrieve the account status from Firestore
     async function fetchAccountStatus(userId) {
         try {
