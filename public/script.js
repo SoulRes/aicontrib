@@ -275,6 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    console.log("User Status:", userStatus);
+    console.log("Download section should be disabled:", !isActivated);
+
     // Firebase Authentication Logout
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
