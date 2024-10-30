@@ -1,5 +1,11 @@
 // Function to switch between sections (make it globally available)
 function switchSection(sectionId) {
+    // Prevent access to the download section if disabled
+    if (sectionId === 'download' && document.getElementById('download-btn').classList.contains('disabled')) {
+        alert("Your account is not activated. Please activate your account to access downloads.");
+        return; // Stop further execution if the download section is disabled
+    }
+
     const sections = document.querySelectorAll('.content-section');
     const selectedSection = document.getElementById(sectionId);
 
@@ -250,28 +256,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAccountStatusUI(userStatus) {
         console.log("User Status:", userStatus); // Log the retrieved status
         const accountStatusElement = document.getElementById('account-status');
-        const downloadSectionLink = document.getElementById('download-section-link');
-        const downloadButton = document.getElementById('download-btn'); // The actual download button
+        const downloadButton = document.getElementById('download-btn');
 
-        if (accountStatusElement && downloadSectionLink && downloadButton) {
+        if (accountStatusElement && downloadButton) {
             const isActivated = userStatus === 'Activated';
 
             console.log("Is Activated:", isActivated); // Confirm the toggle is as expected
 
-            // Update account status text and classes
             accountStatusElement.textContent = isActivated ? "Activated" : "Not Activated";
             accountStatusElement.classList.toggle('activated', isActivated);
             accountStatusElement.classList.toggle('not-activated', !isActivated);
 
-            // Apply styles to the download link in the side menu
-            downloadSectionLink.classList.toggle('disabled', !isActivated);
-            downloadSectionLink.style.pointerEvents = isActivated ? 'auto' : 'none';
-            downloadSectionLink.style.opacity = isActivated ? '1' : '0.5';
-
-            // Disable the actual download button and make it pale if the account is not activated
-            downloadButton.disabled = !isActivated;
-            downloadButton.style.opacity = isActivated ? '1' : '0.5';
+            // Enable or disable the download button based on activation status
+            downloadButton.classList.toggle('disabled', !isActivated);
             downloadButton.style.pointerEvents = isActivated ? 'auto' : 'none';
+            downloadButton.style.opacity = isActivated ? '1' : '0.5';
         }
     }
 
