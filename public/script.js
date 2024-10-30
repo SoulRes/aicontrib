@@ -253,9 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Function to retrieve the account status from Firestore
-    async function fetchAccountStatus(userId) {
+    async function fetchAccountStatus(userEmail) {
         try {
-            const doc = await db.collection('users').doc(userId).get();
+            const doc = await db.collection('users').doc(userEmail.toLowerCase()).get();
             return doc.exists && doc.data().status ? doc.data().status : 'Not Activated';
         } catch (error) {
             console.error("Error fetching account status:", error);
