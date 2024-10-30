@@ -516,7 +516,7 @@ footer p {
 }
 
 /* CSS to indicate disabled state */
-.disabled {
+.disabled, #download-btn:disabled {
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;

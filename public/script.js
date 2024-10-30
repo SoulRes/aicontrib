@@ -251,19 +251,27 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("User Status:", userStatus); // Log the retrieved status
         const accountStatusElement = document.getElementById('account-status');
         const downloadSectionLink = document.getElementById('download-section-link');
+        const downloadButton = document.getElementById('download-btn'); // The actual download button
 
-        if (accountStatusElement && downloadSectionLink) {
+        if (accountStatusElement && downloadSectionLink && downloadButton) {
             const isActivated = userStatus === 'Activated';
 
             console.log("Is Activated:", isActivated); // Confirm the toggle is as expected
 
+            // Update account status text and classes
             accountStatusElement.textContent = isActivated ? "Activated" : "Not Activated";
             accountStatusElement.classList.toggle('activated', isActivated);
             accountStatusElement.classList.toggle('not-activated', !isActivated);
 
+            // Apply styles to the download link in the side menu
             downloadSectionLink.classList.toggle('disabled', !isActivated);
             downloadSectionLink.style.pointerEvents = isActivated ? 'auto' : 'none';
             downloadSectionLink.style.opacity = isActivated ? '1' : '0.5';
+
+            // Disable the actual download button and make it pale if the account is not activated
+            downloadButton.disabled = !isActivated;
+            downloadButton.style.opacity = isActivated ? '1' : '0.5';
+            downloadButton.style.pointerEvents = isActivated ? 'auto' : 'none';
         }
     }
 
