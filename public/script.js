@@ -235,6 +235,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Function to retrieve the account status from Firestore
+    async function fetchAccountStatus(userEmail) {
+        try {
+            const doc = await db.collection('users').doc(userEmail.toLowerCase()).get();
+            return doc.exists && doc.data().status ? doc.data().status : 'Not Activated';
+        } catch (error) {
+            console.error("Error fetching account status:", error);
+            return 'Not Activated'; // Default to 'Not Activated' in case of an error
+        }
+    }
+
     // Update account status and download section access based on activation
     function updateAccountStatusUI(userStatus) {
         const accountStatusElement = document.getElementById('account-status');
@@ -249,17 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             downloadSectionLink.classList.toggle('disabled', !isActivated);
             downloadSectionLink.style.pointerEvents = isActivated ? 'auto' : 'none';
-        }
-    }
-    
-    // Function to retrieve the account status from Firestore
-    async function fetchAccountStatus(userEmail) {
-        try {
-            const doc = await db.collection('users').doc(userEmail.toLowerCase()).get();
-            return doc.exists && doc.data().status ? doc.data().status : 'Not Activated';
-        } catch (error) {
-            console.error("Error fetching account status:", error);
-            return 'Not Activated'; // Default to 'Not Activated' in case of an error
         }
     }
 
