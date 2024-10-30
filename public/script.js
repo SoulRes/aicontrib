@@ -248,18 +248,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update account status and download section access based on activation
     function updateAccountStatusUI(userStatus) {
+        console.log("User Status:", userStatus); // Log the retrieved status
         const accountStatusElement = document.getElementById('account-status');
         const downloadSectionLink = document.getElementById('download-section-link');
 
         if (accountStatusElement && downloadSectionLink) {
             const isActivated = userStatus === 'Activated';
-            
+
+            console.log("Is Activated:", isActivated); // Confirm the toggle is as expected
+
             accountStatusElement.textContent = isActivated ? "Activated" : "Not Activated";
             accountStatusElement.classList.toggle('activated', isActivated);
             accountStatusElement.classList.toggle('not-activated', !isActivated);
 
             downloadSectionLink.classList.toggle('disabled', !isActivated);
             downloadSectionLink.style.pointerEvents = isActivated ? 'auto' : 'none';
+            downloadSectionLink.style.opacity = isActivated ? '1' : '0.5';
         }
     }
 
