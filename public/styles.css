@@ -201,25 +201,26 @@ header {
     width: 50%;
 }
 
+/* For active button */
 .tab.active {
-    background-color: #ffffff;
-    color: #333333;
-    border: 2px solid #3b99fc;
-    font-weight: bold;
+    background-color: #ffffff; /* White background for the active button */
+    color: #2c662d; /* Dark green text for better readability */
+    border: 2px solid #28a745; /* Green border for emphasis */
+    font-weight: bold; /* Bold text to make it stand out */
 }
 
 /* For inactive button */
 .tab.inactive {
-    background-color: #e0e0e0; /* A light gray to add contrast with the active button */
-    color: #666666; /* Darker text for better contrast */
-    border: 2px solid #cccccc; /* Light border */
+    background-color: #e0f7e4; /* Light green for inactive state */
+    color: #4b8b5a; /* Medium green text for contrast */
+    border: 2px solid #a8d5ba; /* Light green border */
 }
 
 /* Hover effect for both buttons */
 .tab:hover {
-    background-color: #d1ecf1; /* Slightly lighter blue when hovered */
-    color: #007bff; /* Blue text color on hover */
-    cursor: pointer; /* Change cursor to pointer */
+    background-color: #c3e6cb; /* Light green when hovered */
+    color: #28a745; /* Green text color on hover */
+    cursor: pointer; /* Pointer cursor on hover */
 }
 
 /* Form Content */
