@@ -245,6 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'Not Activated'; // Default to 'Not Activated' in case of an error
         }
     }
+    
+
+    console.log("User Status:", userStatus);
+    console.log("Download section should be disabled:", !isActivated);
 
     // Update account status and download section access based on activation
     function updateAccountStatusUI(userStatus) {
@@ -274,9 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadButton.style.pointerEvents = isActivated ? 'auto' : 'none';
         }
     }
-
-    console.log("User Status:", userStatus);
-    console.log("Download section should be disabled:", !isActivated);
 
     // Firebase Authentication Logout
     const logoutBtn = document.getElementById('logout-btn');
