@@ -211,6 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     }
+    
+    console.log("User Status:", userStatus);
+    console.log("Download section should be disabled:", !isActivated);
 
     // Handle authenticated user display settings
     auth.onAuthStateChanged(async (user) => {
@@ -245,10 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'Not Activated'; // Default to 'Not Activated' in case of an error
         }
     }
-    
-
-    console.log("User Status:", userStatus);
-    console.log("Download section should be disabled:", !isActivated);
 
     // Update account status and download section access based on activation
     function updateAccountStatusUI(userStatus) {
