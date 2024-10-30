@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Normalized user email:", userEmail);
 
             displayUserEmail(userEmail); // Show email in relevant sections
-            const userStatus = await fetchAccountStatus(user.uid); // Fetch and display account status
+            const userStatus = await fetchAccountStatus(user.email); // Fetch and display account status
             updateAccountStatusUI(userStatus);
             fetchTMCBalance(userEmail); // Fetch and display TMC balance
         } else {
