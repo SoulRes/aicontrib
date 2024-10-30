@@ -123,7 +123,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url('/home/jack/Desktop/website/photo/ai.png') no-repeat center center/cover;
+    background: url('photo/ai.png') no-repeat center center/cover;
     background-attachment: fixed;
 }
 
