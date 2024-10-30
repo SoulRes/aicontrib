@@ -211,9 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     }
-    
-    console.log("User Status:", userStatus);
-    console.log("Download section should be disabled:", !isActivated);
 
     // Handle authenticated user display settings
     auth.onAuthStateChanged(async (user) => {
