@@ -515,12 +515,6 @@ footer p {
     background-color: #444;
 }
 
-/* styles.css */
-.disabled {
-    opacity: 0.5; /* Make it appear grayed out */
-    pointer-events: none; /* Disable clicks */
-}
-
 /* CSS to indicate disabled state */
 .disabled, #download-btn:disabled {
     opacity: 0.5;
