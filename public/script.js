@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Trigger download
         const link = document.createElement('a');
         link.href = windowsInstallerPath;
-        link.download = 'AIcontrib_installer.exe'; // Suggest a filename
+        link.download = 'AIcontrib_Installer.exe'; // Suggest a filename
         link.click();
         
         // Show confirmation message
