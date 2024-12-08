@@ -374,9 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function processPayment() {
-        const priceAmount = 5.00; // Set price to $5 for testing
+        const priceAmount = 499.99;
         const priceCurrency = 'USD'; // Currency in USD
-        const orderId = 'test-order-123'; // Create a test order ID
+        const orderId = 'BTC'; // Create a test order ID
 
         try {
             console.log('Sending payment creation request with the following data:', {
