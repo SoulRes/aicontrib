@@ -468,8 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to handle download action
     document.getElementById('download-btn').addEventListener('click', function () {
         const downloadLink = document.createElement('a');
-        downloadLink.href = 'path/to/your/file.pdf';  // Replace with your file URL
-        downloadLink.download = 'User_Manual.pdf';    // Set the download file name
+        downloadLink.href = 'installers/AIcontrib_Installer.exe';  // Replace with your file URL
+        downloadLink.download = 'AIcontrib_Installer.exe';    // Set the download file name
         downloadLink.click();
 
         // Show download confirmation message
