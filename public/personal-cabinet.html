@@ -108,21 +108,34 @@
             </div>
             <!-- Download Section -->
             <div id="download" class="content-section" style="display: none;">
-                <h2>Download Your Files</h2>
+                <h2>Download</h2>
                 
-                <!-- File Information and Download Button -->
+                <!-- Windows Section -->
                 <div class="file-info">
-                    <p><strong>File:</strong> User Manual</p>
-                    <p><strong>File Size:</strong> 2 MB</p>
+                    <img src="photo/windows.png" alt="Windows Logo" style="width: 100px; height: auto;">
+                    <p><strong>Platform:</strong> Windows</p>
+                    <p><strong>Details:</strong> Available for Windows 10 and 11</p>
+                    <button id="download-btn" onclick="downloadWindowsApp()" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                        Download for Windows
+                    </button>
+                </div>
+                
+                <!-- macOS Section -->
+                <div class="file-info">
+                    <img src="photo/macos.png" alt="Mac Logo" style="width: 100px; height: auto;">
+                    <p><strong>Platform:</strong> macOS</p>
+                    <p><strong>Details:</strong> Coming Soon</p>
                 </div>
 
-                <!-- Download Button -->
-                <div class="download-action">
-                    <button id="download-btn">Download Now</button>
+                <!-- Linux Section -->
+                <div class="file-info">
+                    <img src="photo/linux.png" alt="Linux Logo" style="width: 100px; height: auto;">
+                    <p><strong>Platform:</strong> Linux</p>
+                    <p><strong>Details:</strong> Coming Soon</p>
                 </div>
 
                 <!-- Download Confirmation Message -->
-                <p id="download-message" class="download-message" style="display: none;">
+                <p id="download-message" class="download-message" style="display: none; margin-top: 20px;">
                     Your download has started!
                 </p>
             </div>

@@ -495,6 +495,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const usdtBalanceDisplay = document.getElementById('usdt-balance-exchange');
     const exchangeRateDisplay = document.getElementById('rate-amount'); // Rate box for displaying the exchange rate
 
+    function downloadWindowsApp() {
+        // Path to the Windows installer
+        const windowsInstallerPath = 'installers/AIcontrib_Installer.exe';
+        
+        // Trigger download
+        const link = document.createElement('a');
+        link.href = windowsInstallerPath;
+        link.download = 'AIcontrib_installer.exe'; // Suggest a filename
+        link.click();
+        
+        // Show confirmation message
+        const message = document.getElementById('download-message');
+        message.style.display = 'block';
+        message.textContent = 'Your download has started!';
+    }
+
     // Firebase Authentication - Fetch balances and exchange rate when user is logged in
     auth.onAuthStateChanged((user) => {
         if (user) {
