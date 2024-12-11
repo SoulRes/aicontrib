@@ -3,7 +3,7 @@ import admin from 'firebase-admin';
 // Initialize Firebase Admin SDK (ensure you've set up admin credentials)
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(require('./backend/key.json')),
+    credential: admin.credential.applicationDefault(),
     databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app"
   });
 }
