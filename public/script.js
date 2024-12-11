@@ -163,25 +163,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Function to create user document in Firestore with tmc and totalTMC fields
+    // Function to create or update a user document in Firestore with initial values
     function createUserInFirestore(userEmail) {
         const userDocRef = db.collection("users").doc(userEmail);
 
-        // Set the user's initial TMC values
-        userDocRef.set({
-            tmc: 0,           // Initial TMC balance
-            totalTMC: 0,  
-            usdt: 0, 
-            status: 'Not Activated',
-            email: userEmail  // Save the user's email for reference
-            
-        })
-        .then(() => {
-            console.log("User document created with initial TMC and Total TMC values!");
-        })
-        .catch((error) => {
-            console.error("Error creating user document in Firestore: ", error);
-        });
+        userDocRef.get()
+            .then((doc) => {
+                if (doc.exists) {
+                    console.log("User document already exists. Skipping creation.");
+                } else {
+                    // Set the user's initial values
+                    userDocRef.set({
+                        tmc: 0,           // Initial TMC balance
+                        totalTMC: 0,      // Total earned TMC
+                        usdt: 0,          // USDT balance
+                        status: 'Not Activated', // Default status
+                        email: userEmail, // Save the user's email for reference
+                        referralCode: generateReferralCode(userEmail), // Generate a referral code
+                        referredBy: null, // Initially no referral
+                        referralCount: 0, // Track the number of successful referrals
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for creation
+                    })
+                    .then(() => {
+                        console.log("User document created with initial values!");
+                    })
+                    .catch((error) => {
+                        console.error("Error creating user document in Firestore: ", error);
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error("Error checking user document in Firestore: ", error);
+            });
+    }
+
+    // Helper function to generate a referral code
+    function generateReferralCode(email) {
+        // Create a simple referral code from email
+        return email.split('@')[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000);
     }
 
     // Firebase Authentication - Login with email verification check
@@ -275,6 +294,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const userReferralCodeElement = document.getElementById('user-referral-code');
+    const referralUsageCountElement = document.getElementById('referral-usage-count');
+
+    // Example: Fetch referral code and usage count from Firebase
+    const fetchReferralDetails = async (userId) => {
+        try {
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                userReferralCodeElement.textContent = userData.referralCode || 'N/A';
+                referralUsageCountElement.textContent = userData.referralUsageCount || 0;
+            }
+        } catch (error) {
+            console.error('Error fetching referral details:', error);
+        }
+    };
+
+    // Call the function with the current user's ID
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            fetchReferralDetails(user.uid);
+        }
+    });
+
     // Firebase Authentication Logout
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
@@ -352,20 +395,20 @@ document.addEventListener('DOMContentLoaded', () => {
         catPhoto.src = `path/to/cat-stage-${stage}.png`;
     }
 
-    document.getElementById('buy-btn').addEventListener('click', async function() {
+     // Event listener for Buy Button
+    document.getElementById('buy-btn').addEventListener('click', async function () {
         const paymentMethod = document.getElementById('payment-options').value;
+        const referralCode = document.getElementById('referral-code').value.trim(); // Get referral code input
 
         // Check if a payment method is selected
         if (paymentMethod === 'trc20') {
             alert('You selected TRC-20 (USDT) payment method. Proceeding to checkout.');
-            // Call the function to handle TRC-20 payment
-            await processPayment(100, 'USD', 'USDTTRC20', 'order-123-trc20');
-            
+            const referrerId = await handleReferral(referralCode); // Process referral if provided
+            await processPayment(499.99, 'USD', 'USDTTRC20', 'order-123-trc20', referrerId);
         } else if (paymentMethod === 'btc') {
             alert('You selected Bitcoin (BTC) payment method. Proceeding to checkout.');
-            // Call the function to handle BTC payment
-            await processPayment(100, 'USD', 'BTC', 'order-123-btc');
-            
+            const referrerId = await handleReferral(referralCode); // Process referral if provided
+            await processPayment(499.99, 'USD', 'BTC', 'order-123-btc', referrerId);
         } else if (paymentMethod === '') {
             alert('Please select a payment method.');
         } else {
@@ -373,16 +416,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function processPayment() {
-        const priceAmount = 499.99;
-        const priceCurrency = 'USD'; // Currency in USD
-        const orderId = 'BTC'; // Create a test order ID
+    // Function to handle referrals
+    async function handleReferral(referralCode) {
+        if (!referralCode) {
+            console.log('No referral code entered.');
+            return null; // No referral code provided
+        }
 
+        try {
+            const response = await fetch('/api/validate-referral', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ referralCode }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.valid) {
+                console.log('Referral code is valid:', data);
+                alert(`Referral code applied successfully!`);
+                return data.referrerId; // Return the referrerId for further processing
+            } else {
+                console.error('Invalid referral code:', data.error || 'Unknown error');
+                alert('Invalid referral code. Proceeding without referral.');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error validating referral code:', error);
+            alert('Error validating referral code. Please try again later.');
+            return null;
+        }
+    }
+
+    // Updated processPayment function
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referrerId) {
         try {
             console.log('Sending payment creation request with the following data:', {
                 price: priceAmount,
                 currency: priceCurrency,
-                orderId: orderId
+                orderId: orderId,
+                referrerId: referrerId, // Include referrerId for crediting referral
             });
 
             const response = await fetch('/api/create-payment', {
@@ -393,26 +468,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     price: priceAmount,
                     currency: priceCurrency,
-                    orderId: orderId
+                    paymentMethod,
+                    orderId,
+                    referrerId, // Pass referrerId to backend
                 }),
             });
 
-            const responseText = await response.text();
-            console.log('Raw response:', responseText);
-
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                console.error('Failed to parse response as JSON:', e);
-                alert('Error: Invalid response from the server.');
-                return;
-            }
-
-            console.log('Response data:', data);
+            const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
-                window.location.href = data.checkoutLink; // Redirect to BTCPay checkout page
+                // Redirect to payment page
+                window.location.href = data.checkoutLink;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
@@ -422,47 +488,79 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Error processing payment: ' + error.message);
         }
     }
-    
-    async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
-      try {
-        const subject = 'Payment Confirmation';
-        const htmlContent = `
-          <p>Thank you for your payment!</p>
-          <p><strong>Order ID:</strong> ${orderId}</p>
-          <p><strong>Amount:</strong> ${amount} ${currency}</p>
-          <p>We appreciate your business and look forward to serving you again.</p>
-        `;
 
-        const response = await fetch('https://api.sparkpost.com/api/v1/transmissions', {
-          method: 'POST',
-          headers: {
-            'Authorization': process.env.SPARKPOST_API_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            options: {
-              sandbox: false, // Set to true only if using SparkPost's sandbox mode
-            },
-            content: {
-              from: 'noreply@aicontrib.com', // Replace with your verified sending domain email
-              subject: subject,
-              html: htmlContent,
-            },
-            recipients: [{ address: toEmail }],
-          }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          console.log('Email sent successfully:', data);
-          return data;
-        } else {
-          console.error('Failed to send email:', data);
-          throw new Error(data.errors[0]?.message || 'Unknown error');
+    // New function to credit referral reward
+    async function creditReferrer(referrerId, paymentAmount) {
+        if (!referrerId) {
+            console.log('No referrer to credit.');
+            return;
         }
-      } catch (error) {
-        console.error('Error sending email:', error.message);
-      }
+
+        try {
+            const response = await fetch('/api/credit-referrer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    referrerId: referrerId,
+                    paymentAmount: paymentAmount,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                console.log('Referral reward credited successfully:', data);
+            } else {
+                console.error('Failed to credit referral reward:', data.error || 'Unknown error.');
+            }
+        } catch (error) {
+            console.error('Error crediting referral reward:', error);
+        }
+    }
+
+    // Function to send confirmation email
+    async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
+        try {
+            const subject = 'Payment Confirmation';
+            const htmlContent = `
+                <p>Thank you for your payment!</p>
+                <p><strong>Order ID:</strong> ${orderId}</p>
+                <p><strong>Amount:</strong> ${amount} ${currency}</p>
+                <p>We appreciate your business and look forward to serving you again.</p>
+            `;
+
+            const response = await fetch('https://api.sparkpost.com/api/v1/transmissions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': process.env.SPARKPOST_API_KEY,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    options: {
+                        sandbox: false, // Set to true only if using SparkPost's sandbox mode
+                    },
+                    content: {
+                        from: 'noreply@aicontrib.com', // Replace with your verified sending domain email
+                        subject: subject,
+                        html: htmlContent,
+                    },
+                    recipients: [{ address: toEmail }],
+                }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                console.log('Email sent successfully:', data);
+                return data;
+            } else {
+                console.error('Failed to send email:', data);
+                throw new Error(data.errors[0]?.message || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Error sending email:', error.message);
+        }
     }
 
     // Function to handle download action
