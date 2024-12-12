@@ -294,23 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const userReferralCodeElement = document.getElementById('user-referral-code');
-    const referralUsageCountElement = document.getElementById('referral-usage-count');
-
-    // Example: Fetch referral code and usage count from Firebase
-    const fetchReferralDetails = async (userId) => {
-        try {
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                userReferralCodeElement.textContent = userData.referralCode || 'N/A';
-                referralUsageCountElement.textContent = userData.referralUsageCount || 0;
-            }
-        } catch (error) {
-            console.error('Error fetching referral details:', error);
-        }
-    };
-
     // Call the function with the current user's ID
     auth.onAuthStateChanged((user) => {
         if (user) {
@@ -339,29 +322,38 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Element with ID "account" not found.');
     }
 
-    // Function to fetch TMC balance from Firestore using email
+    // Function to fetch TMC balance and referral details from Firestore using email
     function fetchTMCBalance(userEmail) {
-        console.log("Fetching TMC balance for user email:", userEmail); // Log the email
+        console.log("Fetching TMC balance and referral details for user email:", userEmail); // Log the email
         const userDocRef = db.collection("users").doc(userEmail);
 
         console.log("Firestore document reference:", userDocRef.path);  // Log document path
 
         userDocRef.get().then((doc) => {
             if (doc.exists) {
-                const tmcBalance = parseFloat(doc.data().tmc) || 0;
-                const usdtBalance = parseFloat(doc.data().usdt) || 0;
-                const totalTMCEarned = parseFloat(doc.data().totalTMC) || 0;
+                const userData = doc.data(); // Retrieve all user data
 
+                // TMC and USDT balances
+                const tmcBalance = parseFloat(userData.tmc) || 0;
+                const usdtBalance = parseFloat(userData.usdt) || 0;
+                const totalTMCEarned = parseFloat(userData.totalTMC) || 0;
+
+                // Update balance displays
                 document.getElementById('tmc-balance').textContent = `${tmcBalance.toFixed(2)} TMC`;
                 document.getElementById('usdt-balance-account').textContent = `${usdtBalance.toFixed(2)} USDT`;
                 document.getElementById('total-tmc-earned').textContent = `${totalTMCEarned.toFixed(2)} TMC`;
 
+                // Update referral code and usage count
+                document.getElementById('user-referral-code').textContent = userData.referralCode || 'N/A';
+                document.getElementById('referral-usage-count').textContent = userData.referralUsageCount || 0;
+
+                // Update progress bar
                 updateProgress(tmcBalance); // Update progress based on TMC balance
             } else {
                 console.log("No such document! Check if the document ID matches the email exactly.");
             }
         }).catch((error) => {
-            console.log("Error getting document:", error);  // Log error details
+            console.error("Error fetching user document:", error);  // Log error details
         });
     }
 
