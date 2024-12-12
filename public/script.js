@@ -408,6 +408,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Referral Code Validation Logic
+    document.getElementById('check-referral-btn').addEventListener('click', async function () {
+        const referralCodeInput = document.getElementById('referral-code');
+        const referralStatus = document.getElementById('referral-status');
+        const buyButton = document.getElementById('buy-btn');
+
+        const referralCode = referralCodeInput.value.trim();
+
+        if (!referralCode) {
+            referralCodeInput.classList.add('invalid');
+            referralCodeInput.classList.remove('valid');
+            referralStatus.textContent = 'Please enter a referral code.';
+            referralStatus.style.color = 'red';
+            buyButton.disabled = true;
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/validate-referral', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ referralCode }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.valid) {
+                referralCodeInput.classList.add('valid');
+                referralCodeInput.classList.remove('invalid');
+                referralStatus.textContent = 'Referral code is valid!';
+                referralStatus.style.color = 'green';
+                buyButton.disabled = false; // Enable the buy button
+            } else {
+                referralCodeInput.classList.add('invalid');
+                referralCodeInput.classList.remove('valid');
+                referralStatus.textContent = 'Invalid referral code.';
+                referralStatus.style.color = 'red';
+                buyButton.disabled = true; // Keep the buy button disabled
+            }
+        } catch (error) {
+            console.error('Error validating referral code:', error);
+            referralStatus.textContent = 'Error checking referral code. Please try again later.';
+            referralStatus.style.color = 'red';
+            buyButton.disabled = true; // Keep the buy button disabled
+        }
+    });
     // Function to handle referrals
     async function handleReferral(referralCode) {
         if (!referralCode) {

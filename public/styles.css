@@ -913,6 +913,30 @@ input[type="number"], input[type="text"] {
 .btn-buy-soft:hover {
     background-color: darkgreen;
 }
+
+/* Referral Code Input Status */
+.referral-code input {
+    border: 1px solid #ccc;
+    padding: 8px;
+    margin-right: 8px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+.referral-code input.valid {
+    border-color: green;
+}
+
+.referral-code input.invalid {
+    border-color: red;
+}
+
+/* Referral Status Message */
+.referral-status {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
 /* Exchange Section Slider */
 #exchange .slider-container {
     width: 100%;
