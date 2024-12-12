@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Update referral code and usage count
                 document.getElementById('user-referral-code').textContent = userData.referralCode || 'N/A';
-                document.getElementById('referral-usage-count').textContent = userData.referralUsageCount || 0;
+                document.getElementById('referral-usage-count').textContent = userData.referralCount || 0;
 
                 // Update progress bar
                 updateProgress(tmcBalance); // Update progress based on TMC balance
