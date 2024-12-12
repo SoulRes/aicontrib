@@ -396,11 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (paymentMethod === 'trc20') {
             alert('You selected TRC-20 (USDT) payment method. Proceeding to checkout.');
             const referrerId = await handleReferral(referralCode); // Process referral if provided
-            await processPayment(499.99, 'USD', 'USDTTRC20', 'order-123-trc20', referrerId);
+            await processPayment(1, 'USD', 'USDTTRC20', 'order-123-trc20', referrerId);
         } else if (paymentMethod === 'btc') {
             alert('You selected Bitcoin (BTC) payment method. Proceeding to checkout.');
             const referrerId = await handleReferral(referralCode); // Process referral if provided
-            await processPayment(499.99, 'USD', 'BTC', 'order-123-btc', referrerId);
+            await processPayment(1, 'USD', 'BTC', 'order-123-btc', referrerId);
         } else if (paymentMethod === '') {
             alert('Please select a payment method.');
         } else {
