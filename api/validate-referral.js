@@ -22,14 +22,19 @@ export default async (req, res) => {
   }
 
   try {
-    // Query Firestore for the referral code
+    console.log('Referral code received:', referralCode);
+
+    // Adjust query based on Firestore structure
     const referralSnapshot = await db
-      .collection('users')
+      .collection('users') // Use collectionGroup if needed
       .where('referralCode', '==', referralCode)
       .limit(1)
       .get();
 
+    console.log('Referral snapshot size:', referralSnapshot.size);
+
     if (referralSnapshot.empty) {
+      console.log('No matching referral code found.');
       return res.status(404).json({ valid: false, error: 'Referral code not found.' });
     }
 
@@ -37,14 +42,16 @@ export default async (req, res) => {
     const referrerDoc = referralSnapshot.docs[0];
     const referrerData = referrerDoc.data();
 
+    console.log('Referral code found:', referrerData);
+
     return res.status(200).json({
       valid: true,
-      referrerId: referrerDoc.id, // The document ID of the referrer
-      referrerEmail: referrerData.email || null, // Optional, for logging
+      referrerId: referrerDoc.id,
+      referrerEmail: referrerData.email || null,
     });
   } catch (error) {
-    console.error('Error validating referral code:', error.message, error.stack);
-    return res.status(500).json({ error: 'Internal Server Error' + error.message });
+    console.error('Error validating referral code:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
