@@ -409,19 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Referral Code Validation Logic
-    document.getElementById('check-referral-btn').addEventListener('click', async function () {
-        const referralCodeInput = document.getElementById('referral-code');
-        const referralStatus = document.getElementById('referral-status');
-        const buyButton = document.getElementById('buy-btn');
+    const checkReferralButton = document.getElementById('check-referral-btn');
+    const referralInput = document.getElementById('referral-code');
+    const referralStatusImage = document.getElementById('referral-status-img');
+    const referralFeedback = document.getElementById('referral-feedback');
 
-        const referralCode = referralCodeInput.value.trim();
-
+    checkReferralButton.addEventListener('click', async () => {
+        const referralCode = referralInput.value.trim();
         if (!referralCode) {
-            referralCodeInput.classList.add('invalid');
-            referralCodeInput.classList.remove('valid');
-            referralStatus.textContent = 'Please enter a referral code.';
-            referralStatus.style.color = 'red';
-            buyButton.disabled = true;
+            referralFeedback.textContent = 'Please enter a referral code.';
+            checkReferralButton.classList.remove('success', 'error');
+            referralStatusImage.src = 'photo/search.png';
             return;
         }
 
@@ -429,29 +427,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/validate-referral', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ referralCode }),
+                body: JSON.stringify({ referralCode })
             });
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error('Failed to validate referral code.');
+            }
 
-            if (response.ok && data.valid) {
-                referralCodeInput.classList.add('valid');
-                referralCodeInput.classList.remove('invalid');
-                referralStatus.textContent = 'Referral code is valid!';
-                referralStatus.style.color = 'green';
-                buyButton.disabled = false; // Enable the buy button
+            const data = await response.json();
+            if (data.valid) {
+                referralFeedback.textContent = 'Referral code is valid!';
+                referralFeedback.style.color = '#4caf50';
+                checkReferralButton.classList.add('success');
+                checkReferralButton.classList.remove('error');
+                referralStatusImage.src = 'photo/success.png';
             } else {
-                referralCodeInput.classList.add('invalid');
-                referralCodeInput.classList.remove('valid');
-                referralStatus.textContent = 'Invalid referral code.';
-                referralStatus.style.color = 'red';
-                buyButton.disabled = true; // Keep the buy button disabled
+                referralFeedback.textContent = 'Referral code is invalid.';
+                referralFeedback.style.color = '#f44336';
+                checkReferralButton.classList.add('error');
+                checkReferralButton.classList.remove('success');
+                referralStatusImage.src = 'photo/fail.png';
             }
         } catch (error) {
             console.error('Error validating referral code:', error);
-            referralStatus.textContent = 'Error checking referral code. Please try again later.';
-            referralStatus.style.color = 'red';
-            buyButton.disabled = true; // Keep the buy button disabled
+            referralFeedback.textContent = 'Error validating referral code.';
+            referralFeedback.style.color = '#f44336';
+            checkReferralButton.classList.add('error');
+            checkReferralButton.classList.remove('success');
+            referralStatusImage.src = 'path/to/fail.png';
         }
     });
     // Function to handle referrals
