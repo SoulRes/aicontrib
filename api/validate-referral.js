@@ -2,8 +2,9 @@ import admin from 'firebase-admin';
 
 // Ensure Firebase Admin is initialized
 if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY); // Parse the JSON string from the environment variable
   admin.initializeApp({
-    credential: admin.credential.cert(require('backend/key.json')),
+    credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app", // Replace with your Firebase project URL
   });
 }
