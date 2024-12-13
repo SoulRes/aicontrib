@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             referralFeedback.style.color = '#f44336';
             checkReferralButton.classList.add('error');
             checkReferralButton.classList.remove('success');
-            referralStatusImage.src = 'path/to/fail.png';
+            referralStatusImage.src = 'photo/fail.png';
         }
     });
     // Function to handle referrals
