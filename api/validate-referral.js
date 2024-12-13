@@ -43,8 +43,8 @@ export default async (req, res) => {
       referrerEmail: referrerData.email || null, // Optional, for logging
     });
   } catch (error) {
-    console.error('Error validating referral code:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error validating referral code:', error.message, error.stack);
+    return res.status(500).json({ error: 'Internal Server Error' + error.message });
   }
 };
 
