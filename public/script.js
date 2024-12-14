@@ -387,25 +387,19 @@ document.addEventListener('DOMContentLoaded', () => {
         catPhoto.src = `path/to/cat-stage-${stage}.png`;
     }
 
-     // Event listener for Buy Button
+    // Event listener for Buy Button
     document.getElementById('buy-btn').addEventListener('click', async function () {
+        console.log('Buy button clicked!'); // Debugging log
         const paymentMethod = document.getElementById('payment-options').value;
         const referralCode = document.getElementById('referral-code').value.trim(); // Get referral code input
 
-        // Check if a payment method is selected
-        if (paymentMethod === 'trc20') {
-            alert('You selected TRC-20 (USDT) payment method. Proceeding to checkout.');
-            const referrerId = await handleReferral(referralCode); // Process referral if provided
-            await processPayment(1, 'USD', 'USDTTRC20', 'order-123-trc20', referrerId);
-        } else if (paymentMethod === 'btc') {
-            alert('You selected Bitcoin (BTC) payment method. Proceeding to checkout.');
-            const referrerId = await handleReferral(referralCode); // Process referral if provided
-            await processPayment(1, 'USD', 'BTC', 'order-123-btc', referrerId);
-        } else if (paymentMethod === '') {
+        if (!paymentMethod) {
             alert('Please select a payment method.');
-        } else {
-            alert('Invalid payment method selected.');
+            return;
         }
+
+        alert(`You selected ${paymentMethod}. Proceeding to checkout.`);
+        await processPayment(1, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
     });
 
     // Referral Code Logic
@@ -413,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const referralInput = document.getElementById('referral-code');
     const referralStatusImage = document.getElementById('referral-status-img');
     const referralFeedback = document.getElementById('referral-feedback');
-    const buyButton = document.getElementById('buy-btn');
 
     // Event Listener for "Check Referral" Button
     checkReferralButton.addEventListener('click', () => {
@@ -428,32 +421,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Always mark referral code as valid
         referralFeedback.style.color = '#4caf50'; // Green for success
+        referralFeedback.textContent = 'Referral code is valid!';
         referralStatusImage.src = 'photo/success.png'; // Update to success image
     });
 
-    // New function to save referral code to Firebase
-    async function saveReferralCodeToFirebase(referralCode) {
+    // Function to handle payment
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode) {
         try {
-            const user = firebase.auth().currentUser; // Get the current authenticated user
-            if (user) {
-                const userDocRef = db.collection('users').doc(user.email);
-                await userDocRef.update({ referredBy: referralCode });
-                console.log(`Referral code "${referralCode}" saved for user "${user.email}".`);
-            }
-        } catch (error) {
-            console.error('Error saving referral code to Firebase:', error);
-        }
-    }
-
-    // Updated processPayment function
-    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referrerId) {
-        try {
-            console.log('Sending payment creation request with the following data:', {
+            console.log('Sending payment creation request with the following details:', {
                 price: priceAmount,
                 currency: priceCurrency,
-                orderId: orderId,
+                paymentMethod,
+                orderId,
             });
 
+            // Simulated payment processing (replace with actual API call)
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
@@ -470,6 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
+                // Save referral code to Firebase only if payment is successful
+                if (referralCode) {
+                    await saveReferralCodeToFirebase(referralCode);
+                }
+
                 // Redirect to payment page
                 window.location.href = data.checkoutLink;
             } else {
@@ -480,7 +467,21 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error processing payment:', error);
             alert('Error processing payment: ' + error.message);
         }
-    } 
+    }
+
+    // New function to save referral code to Firebase
+    async function saveReferralCodeToFirebase(referralCode) {
+        try {
+            const user = firebase.auth().currentUser; // Get the current authenticated user
+            if (user) {
+                const userDocRef = db.collection('users').doc(user.email);
+                await userDocRef.update({ referredBy: referralCode });
+                console.log(`Referral code "${referralCode}" saved for user "${user.email}".`);
+            }
+        } catch (error) {
+            console.error('Error saving referral code to Firebase:', error);
+        }
+    }
 
     // Function to send confirmation email
     async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
