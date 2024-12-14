@@ -59,11 +59,6 @@ function openForm(formType) {
     }
 }
 
-const buyButton = document.getElementById('buy-btn');
-if (!buyButton) {
-    console.error('Buy button (buy-btn) not found in the DOM.');
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure the login form is shown by default when the page loads
     const loginFormElement = document.getElementById('login'); // Check if the login form exists
@@ -73,6 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Login form not found on this page."); // Log this to avoid throwing errors
     }
     
+    const buyButton = document.getElementById('buy-btn');
+    if (!buyButton) {
+        console.error('Buy button (buy-btn) not found in the DOM.');
+    }
+
     switchSection('account');
 
     // Firebase Configuration
@@ -392,9 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
         catPhoto.src = `path/to/cat-stage-${stage}.png`;
     }
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM fully loaded and parsed');
-    
     // Event listener for Buy Button
     document.getElementById('buy-btn').addEventListener('click', async function () {
         console.log('Buy button clicked!'); // Debugging log
