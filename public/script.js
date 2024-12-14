@@ -433,6 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to handle payment
     async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId) {
+        const referralCode = referralInput.value.trim(); // Get referral code from input
         try {
             console.log('Sending payment creation request with the following details:', {
                 price: priceAmount,
