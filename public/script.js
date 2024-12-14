@@ -59,6 +59,11 @@ function openForm(formType) {
     }
 }
 
+const buyButton = document.getElementById('buy-btn');
+if (!buyButton) {
+    console.error('Buy button (buy-btn) not found in the DOM.');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure the login form is shown by default when the page loads
     const loginFormElement = document.getElementById('login'); // Check if the login form exists
@@ -388,39 +393,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listener for Buy Button
-    document.getElementById('buy-btn').addEventListener('click', async function() {
+    document.getElementById('buy-btn').addEventListener('click', async function () {
+        console.log('Buy button clicked!'); // Debugging log
         const paymentMethod = document.getElementById('payment-options').value;
+        const referralCode = document.getElementById('referral-code').value.trim(); // Get referral code input
 
-        // Check if a payment method is selected
-        if (paymentMethod === 'trc20') {
-            alert('You selected TRC-20 (USDT) payment method. Proceeding to checkout.');
-            // Call the function to handle TRC-20 payment
-            await processPayment(100, 'USD', 'USDTTRC20', 'order-123-trc20');
-            
-        } else if (paymentMethod === 'btc') {
-            alert('You selected Bitcoin (BTC) payment method. Proceeding to checkout.');
-            // Call the function to handle BTC payment
-            await processPayment(100, 'USD', 'BTC', 'order-123-btc');
-            
-        } else if (paymentMethod === '') {
+        if (!paymentMethod) {
             alert('Please select a payment method.');
-        } else {
-            alert('Invalid payment method selected.');
+            return;
         }
+
+        alert(`You selected ${paymentMethod}. Proceeding to checkout.`);
+        await processPayment(1, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
     });
 
-    async function processPayment() {
-        const priceAmount = 5.00; // Set price to $5 for testing
-        const priceCurrency = 'USD'; // Currency in USD
-        const orderId = 'test-order-123'; // Create a test order ID
+    // Referral Code Logic
+    const checkReferralButton = document.getElementById('check-referral-btn');
+    const referralInput = document.getElementById('referral-code');
+    const referralStatusImage = document.getElementById('referral-status-img');
+    const referralFeedback = document.getElementById('referral-feedback');
 
+    // Event Listener for "Check Referral" Button
+    checkReferralButton.addEventListener('click', () => {
+        const referralCode = referralInput.value.trim();
+
+        if (!referralCode) {
+            referralFeedback.textContent = 'Please enter a referral code.';
+            referralFeedback.style.color = '#f44336'; // Red for error
+            referralStatusImage.src = 'photo/fail.png'; // Update to failure image
+            return;
+        }
+
+        // Always mark referral code as valid
+        referralFeedback.style.color = '#4caf50'; // Green for success
+        referralFeedback.textContent = 'Referral code is valid!';
+        referralStatusImage.src = 'photo/success.png'; // Update to success image
+    });
+
+    // Function to handle payment
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode) {
         try {
-            console.log('Sending payment creation request with the following data:', {
+            console.log('Sending payment creation request with the following details:', {
                 price: priceAmount,
                 currency: priceCurrency,
-                orderId: orderId
+                paymentMethod,
+                orderId,
             });
 
+            // Simulated payment processing (replace with actual API call)
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
@@ -429,26 +449,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     price: priceAmount,
                     currency: priceCurrency,
-                    orderId: orderId
+                    paymentMethod,
+                    orderId,
                 }),
             });
 
-            const responseText = await response.text();
-            console.log('Raw response:', responseText);
-
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                console.error('Failed to parse response as JSON:', e);
-                alert('Error: Invalid response from the server.');
-                return;
-            }
-
-            console.log('Response data:', data);
+            const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
-                window.location.href = data.checkoutLink; // Redirect to BTCPay checkout page
+                // Save referral code to Firebase only if payment is successful
+                if (referralCode) {
+                    await saveReferralCodeToFirebase(referralCode);
+                }
+
+                // Redirect to payment page
+                window.location.href = data.checkoutLink;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
