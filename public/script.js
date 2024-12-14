@@ -427,7 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Always mark referral code as valid
-        referralFeedback.textContent = 'Referral code is valid!';
         referralFeedback.style.color = '#4caf50'; // Green for success
         referralStatusImage.src = 'photo/success.png'; // Update to success image
     });
