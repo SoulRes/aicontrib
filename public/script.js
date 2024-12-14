@@ -431,51 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         referralStatusImage.src = 'photo/success.png'; // Update to success image
     });
 
-    // Function to handle payment
-    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId) {
-        const referralCode = referralInput.value.trim(); // Get referral code from input
-        try {
-            console.log('Sending payment creation request with the following details:', {
-                price: priceAmount,
-                currency: priceCurrency,
-                paymentMethod,
-                orderId,
-            });
-
-            // Simulated payment processing (replace with actual API call)
-            const response = await fetch('/api/create-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    price: priceAmount,
-                    currency: priceCurrency,
-                    paymentMethod,
-                    orderId,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.checkoutLink) {
-                // Save referral code to Firebase only if payment is successful
-                if (referralCode) {
-                    await saveReferralCodeToFirebase(referralCode);
-                }
-
-                // Redirect to payment page
-                window.location.href = data.checkoutLink;
-            } else {
-                console.error('Error processing payment:', data.error || 'No payment URL returned.');
-                alert('Error: ' + (data.error || 'Unexpected error occurred.'));
-            }
-        } catch (error) {
-            console.error('Error processing payment:', error);
-            alert('Error processing payment: ' + error.message);
-        }
-    }
-
     // New function to save referral code to Firebase
     async function saveReferralCodeToFirebase(referralCode) {
         try {
