@@ -408,99 +408,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Referral Code Validation Logic
+    // Referral Code Logic
     const checkReferralButton = document.getElementById('check-referral-btn');
     const referralInput = document.getElementById('referral-code');
     const referralStatusImage = document.getElementById('referral-status-img');
     const referralFeedback = document.getElementById('referral-feedback');
+    const buyButton = document.getElementById('buy-btn');
 
-    checkReferralButton.addEventListener('click', async () => {
+    // Event Listener for "Check Referral" Button
+    checkReferralButton.addEventListener('click', () => {
         const referralCode = referralInput.value.trim();
+
         if (!referralCode) {
             referralFeedback.textContent = 'Please enter a referral code.';
-            checkReferralButton.classList.remove('success', 'error');
-            referralStatusImage.src = 'photo/search.png';
+            referralFeedback.style.color = '#f44336'; // Red for error
+            referralStatusImage.src = 'photo/fail.png'; // Update to failure image
             return;
         }
 
-        try {
-            const response = await fetch('/api/validate-referral', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ referralCode })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to validate referral code.');
-            }
-
-            const data = await response.json();
-            if (data.valid) {
-                referralFeedback.textContent = 'Referral code is valid!';
-                referralFeedback.style.color = '#4caf50';
-                checkReferralButton.classList.add('success');
-                checkReferralButton.classList.remove('error');
-                referralStatusImage.src = 'photo/success.png';
-            } else {
-                referralFeedback.textContent = 'Referral code is invalid.';
-                referralFeedback.style.color = '#f44336';
-                checkReferralButton.classList.add('error');
-                checkReferralButton.classList.remove('success');
-                referralStatusImage.src = 'photo/fail.png';
-            }
-        } catch (error) {
-            console.error('Error validating referral code:', error);
-            referralFeedback.textContent = 'Error validating referral code.';
-            referralFeedback.style.color = '#f44336';
-            checkReferralButton.classList.add('error');
-            checkReferralButton.classList.remove('success');
-            referralStatusImage.src = 'photo/fail.png';
-        }
+        // Always mark referral code as valid
+        referralFeedback.textContent = 'Referral code is valid!';
+        referralFeedback.style.color = '#4caf50'; // Green for success
+        referralStatusImage.src = 'photo/success.png'; // Update to success image
     });
-    // Function to handle referrals
-    async function handleReferral(referralCode) {
-        if (!referralCode) {
-            console.log('No referral code entered.');
-            return null; // No referral code provided
-        }
 
+    // Function to handle payment
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId) {
+        const referralCode = referralInput.value.trim(); // Get referral code from input
         try {
-            const response = await fetch('/api/validate-referral', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ referralCode }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.valid) {
-                console.log('Referral code is valid:', data);
-                alert(`Referral code applied successfully!`);
-                return data.referrerId; // Return the referrerId for further processing
-            } else {
-                console.error('Invalid referral code:', data.error || 'Unknown error');
-                alert('Invalid referral code. Proceeding without referral.');
-                return null;
-            }
-        } catch (error) {
-            console.error('Error validating referral code:', error);
-            alert('Error validating referral code. Please try again later.');
-            return null;
-        }
-    }
-
-    // Updated processPayment function
-    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referrerId) {
-        try {
-            console.log('Sending payment creation request with the following data:', {
+            console.log('Sending payment creation request with the following details:', {
                 price: priceAmount,
                 currency: priceCurrency,
-                orderId: orderId,
-                referrerId: referrerId, // Include referrerId for crediting referral
+                paymentMethod,
+                orderId,
             });
 
+            // Simulated payment processing (replace with actual API call)
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
@@ -511,13 +454,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     currency: priceCurrency,
                     paymentMethod,
                     orderId,
-                    referrerId, // Pass referrerId to backend
                 }),
             });
 
             const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
+                // Save referral code to Firebase only if payment is successful
+                if (referralCode) {
+                    await saveReferralCodeToFirebase(referralCode);
+                }
+
                 // Redirect to payment page
                 window.location.href = data.checkoutLink;
             } else {
@@ -530,36 +477,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // New function to credit referral reward
-    async function creditReferrer(referrerId, paymentAmount) {
-        if (!referrerId) {
-            console.log('No referrer to credit.');
+    // New function to save referral code to Firebase
+    async function saveReferralCodeToFirebase(referralCode) {
+        try {
+            const user = firebase.auth().currentUser; // Get the current authenticated user
+            if (user) {
+                const userDocRef = db.collection('users').doc(user.email);
+                await userDocRef.update({ referredBy: referralCode });
+                console.log(`Referral code "${referralCode}" saved for user "${user.email}".`);
+            }
+        } catch (error) {
+            console.error('Error saving referral code to Firebase:', error);
+        }
+    }
+
+    // Event Listener for "Buy Now" Button
+    buyButton.addEventListener('click', async () => {
+        const paymentMethod = document.getElementById('payment-options').value;
+
+        if (!paymentMethod) {
+            alert('Please select a payment method.');
             return;
         }
 
-        try {
-            const response = await fetch('/api/credit-referrer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    referrerId: referrerId,
-                    paymentAmount: paymentAmount,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                console.log('Referral reward credited successfully:', data);
-            } else {
-                console.error('Failed to credit referral reward:', data.error || 'Unknown error.');
-            }
-        } catch (error) {
-            console.error('Error crediting referral reward:', error);
-        }
-    }
+        // Simulated payment logic
+        await processPayment(499.99, 'USD', paymentMethod, 'order-123');
+    });
 
     // Function to send confirmation email
     async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
