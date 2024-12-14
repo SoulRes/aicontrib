@@ -392,6 +392,9 @@ document.addEventListener('DOMContentLoaded', () => {
         catPhoto.src = `path/to/cat-stage-${stage}.png`;
     }
 
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM fully loaded and parsed');
+    
     // Event listener for Buy Button
     document.getElementById('buy-btn').addEventListener('click', async function () {
         console.log('Buy button clicked!'); // Debugging log
