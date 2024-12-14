@@ -490,18 +490,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Event Listener for "Buy Now" Button
-    buyButton.addEventListener('click', async () => {
-        const paymentMethod = document.getElementById('payment-options').value;
+    // Updated processPayment function
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referrerId) {
+        try {
+            console.log('Sending payment creation request with the following data:', {
+                price: priceAmount,
+                currency: priceCurrency,
+                orderId: orderId,
+            });
 
-        if (!paymentMethod) {
-            alert('Please select a payment method.');
-            return;
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    price: priceAmount,
+                    currency: priceCurrency,
+                    paymentMethod,
+                    orderId,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.checkoutLink) {
+                // Redirect to payment page
+                window.location.href = data.checkoutLink;
+            } else {
+                console.error('Error processing payment:', data.error || 'No payment URL returned.');
+                alert('Error: ' + (data.error || 'Unexpected error occurred.'));
+            }
+        } catch (error) {
+            console.error('Error processing payment:', error);
+            alert('Error processing payment: ' + error.message);
         }
-
-        // Simulated payment logic
-        await processPayment(499.99, 'USD', paymentMethod, 'order-123');
-    });
+    } 
 
     // Function to send confirmation email
     async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
