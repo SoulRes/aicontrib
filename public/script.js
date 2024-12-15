@@ -237,25 +237,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Show the Password Reset Modal
-    const forgotPasswordLink = document.getElementById('forgot-password-link');
-    const passwordResetModal = document.getElementById('password-reset-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-
-    forgotPasswordLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        passwordResetModal.style.display = 'block';
+    document.getElementById('forgot-password-link').addEventListener('click', function () {
+        const modal = document.getElementById('password-reset-modal');
+        modal.style.display = 'flex'; // Show modal
     });
 
-    closeModalBtn.addEventListener('click', () => {
-        passwordResetModal.style.display = 'none';
+    document.getElementById('close-modal-btn').addEventListener('click', function () {
+        const modal = document.getElementById('password-reset-modal');
+        modal.style.display = 'none'; // Hide modal
     });
 
-    // Handle Password Reset
-    const resetPasswordBtn = document.getElementById('reset-password-btn');
-    const resetEmailInput = document.getElementById('reset-email');
+    document.getElementById('reset-password-btn').addEventListener('click', async function () {
+        const email = document.getElementById('reset-email').value.trim();
 
-    resetPasswordBtn.addEventListener('click', async () => {
-        const email = resetEmailInput.value.trim();
         if (!email) {
             alert('Please enter your email address.');
             return;
@@ -264,10 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await firebase.auth().sendPasswordResetEmail(email);
             alert('Password reset link has been sent to your email.');
-            passwordResetModal.style.display = 'none'; // Close the modal
+            document.getElementById('password-reset-modal').style.display = 'none'; // Hide modal after success
         } catch (error) {
-            console.error('Error sending password reset email:', error);
-            alert('Error: ' + error.message);
+            console.error('Error sending reset email:', error);
+            alert('Error sending password reset link. Please try again later.');
         }
     });
 
