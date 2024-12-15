@@ -236,6 +236,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Show the Password Reset Modal
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const passwordResetModal = document.getElementById('password-reset-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+
+    forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        passwordResetModal.style.display = 'block';
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        passwordResetModal.style.display = 'none';
+    });
+
+    // Handle Password Reset
+    const resetPasswordBtn = document.getElementById('reset-password-btn');
+    const resetEmailInput = document.getElementById('reset-email');
+
+    resetPasswordBtn.addEventListener('click', async () => {
+        const email = resetEmailInput.value.trim();
+        if (!email) {
+            alert('Please enter your email address.');
+            return;
+        }
+
+        try {
+            await firebase.auth().sendPasswordResetEmail(email);
+            alert('Password reset link has been sent to your email.');
+            passwordResetModal.style.display = 'none'; // Close the modal
+        } catch (error) {
+            console.error('Error sending password reset email:', error);
+            alert('Error: ' + error.message);
+        }
+    });
+
     // Handle authenticated user display settings
     auth.onAuthStateChanged(async (user) => {
         if (user) {

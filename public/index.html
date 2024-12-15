@@ -45,6 +45,7 @@
             
             <!-- Login/Signup Form Container -->
             <div class="form-container">
+                <!-- Form Header with Tabs -->
                 <div class="form-header">
                     <button class="tab active" onclick="openForm('login')">Login</button>
                     <button class="tab" onclick="openForm('signup')">Sign Up</button>
@@ -55,12 +56,14 @@
                     <form id="login-form">
                         <input type="email" id="login-email" placeholder="Email" required>
                         <input type="password" id="login-password" placeholder="Password" required>
+                        
                         <div class="form-options">
                             <label>
                                 <input type="checkbox"> Remember me
                             </label>
-                            <a href="#">Forgot your password?</a>
+                            <a href="#" id="forgot-password-link" class="forgot-password">Forgot your password?</a>
                         </div>
+                        
                         <button type="submit" class="btn">Login</button>
                     </form>
                 </div>
@@ -74,6 +77,17 @@
                         <span id="password-error" style="color: red; display: none;">Passwords do not match.</span>
                         <button type="submit" class="btn">Sign Up</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Password Reset Modal -->
+            <div id="password-reset-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <h3>Reset Your Password</h3>
+                    <p>Enter your email address to receive a password reset link:</p>
+                    <input type="email" id="reset-email" placeholder="Enter your email" required>
+                    <button id="reset-password-btn" class="btn">Send Reset Link</button>
+                    <button id="close-modal-btn" class="btn btn-close">Close</button>
                 </div>
             </div>
         </div>
