@@ -438,20 +438,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to handle payment
     async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode) {
-        try {
-            console.log('Sending payment creation request with the following details:', {
-                price: priceAmount,
-                currency: priceCurrency,
-                paymentMethod,
-                orderId,
-            });
+        console.log('processPayment called with:', {
+            priceAmount, priceCurrency, paymentMethod, orderId, referralCode,
+        });
 
-            console.log('Before sending payment request...');
+        try {
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     price: priceAmount,
                     currency: priceCurrency,
@@ -460,25 +454,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }),
             });
 
+            console.log('Response from create-payment:', response);
+
             const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
-                // Save referral code to Firebase only if payment is successful
+                console.log('Redirecting to:', data.checkoutLink);
                 if (referralCode) {
                     await saveReferralCodeToFirebase(referralCode);
                 }
-
-                // Redirect to payment page
                 window.location.href = data.checkoutLink;
             } else {
                 console.error('Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
             }
         } catch (error) {
-            console.error('Error processing payment:', error);
-            alert('Error processing payment: ' + error.message);
+            console.error('Error in processPayment:', error);
         }
     }
+
     // Function to send confirmation email
     async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
         try {
