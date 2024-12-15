@@ -473,6 +473,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function saveReferralCodeToFirebase(referralCode) {
+        try {
+            const user = firebase.auth().currentUser; // Get the authenticated user
+            if (user) {
+                const userDocRef = db.collection('users').doc(user.email);
+                await userDocRef.update({ referredBy: referralCode });
+                console.log(`Referral code "${referralCode}" saved for user "${user.email}".`);
+            }
+        } catch (error) {
+            console.error('Error saving referral code to Firebase:', error);
+        }
+    }
+
     // Function to send confirmation email
     async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
         try {
