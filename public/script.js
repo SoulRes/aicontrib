@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 orderId,
             });
 
-            // Simulated payment processing (replace with actual API call)
+            console.log('Before sending payment request...');
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
