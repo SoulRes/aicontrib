@@ -5,14 +5,13 @@ export default async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { price, currency, orderId, referrerId } = req.body; // Extract referrerId
-
+  const { price, currency, orderId} = req.body;
+  
   // Log the request data for debugging
   console.log('Creating payment with the following data:', {
     price,
     currency,
     orderId,
-    referrerId, // Include referrerId in logs
   });
 
   try {
@@ -26,9 +25,7 @@ export default async (req, res) => {
         metadata: {
           orderId: orderId,
           itemDesc: "My Product",
-          posData: {
-            referrerId: referrerId || null, // Include referrerId in metadata if provided
-          },
+          
         },
         checkout: {
           speedPolicy: "HighSpeed",
@@ -49,11 +46,6 @@ export default async (req, res) => {
     if (response.ok && data.checkoutLink) {
       console.log('Payment creation successful:', data);
 
-      // Handle referral crediting after successful payment creation
-      if (referrerId) {
-        await creditReferrer(referrerId, price / 2); // 50% of the payment amount as referral reward
-      }
-
       return res.status(200).json(data);
     } else {
       console.error('Error creating payment:', data);
@@ -64,31 +56,3 @@ export default async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
-// Function to credit the referral reward
-async function creditReferrer(referrerId, rewardAmount) {
-  try {
-    const response = await fetch(`${process.env.YOUR_API_BASE_URL}/api/credit-referrer`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_API_KEY}`, // Ensure secure internal communication
-      },
-      body: JSON.stringify({
-        referrerId,
-        rewardAmount,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      console.log('Referral reward credited successfully:', data);
-    } else {
-      console.error('Failed to credit referral reward:', data.error || 'Unknown error.');
-    }
-  } catch (error) {
-    console.error('Error crediting referral reward:', error);
-  }
-}
-
