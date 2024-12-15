@@ -396,15 +396,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('buy-btn').addEventListener('click', async function () {
         console.log('Buy button clicked!'); // Debugging log
         const paymentMethod = document.getElementById('payment-options').value;
-        const referralCode = document.getElementById('referral-code').value.trim(); // Get referral code input
+        console.log('Selected payment method:', paymentMethod); // Debugging log
+        const referralCode = document.getElementById('referral-code').value.trim();
+        console.log('Entered referral code:', referralCode); // Debugging log
 
         if (!paymentMethod) {
             alert('Please select a payment method.');
             return;
         }
 
-        alert(`You selected ${paymentMethod}. Proceeding to checkout.`);
-        await processPayment(1, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
+        try {
+            await processPayment(1, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
+            console.log('Payment processing initiated.'); // Debugging log
+        } catch (error) {
+            console.error('Error during payment:', error); // Log any error
+        }
     });
 
     // Referral Code Logic
