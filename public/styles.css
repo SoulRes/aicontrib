@@ -291,8 +291,8 @@ input[type="text"], input[type="email"], input[type="password"] {
 .modal-content {
     background-color: #fff; /* White background */
     border-radius: 8px;
-    padding: 20px;
-    width: 300px;
+    padding: 30px;
+    width: 400px; /* Increased width for more space */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
     position: relative;
@@ -316,36 +316,39 @@ input[type="text"], input[type="email"], input[type="password"] {
 .modal-buttons {
     display: flex;
     justify-content: space-between;
+    margin-top: 20px; /* Add spacing above buttons */
 }
 
-/* Green button for Send Reset Link */
-.btn-green {
-    background-color: #4caf50;
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
+/* Pale Red Button for Send Reset Link */
+.btn-pale-red {
+    background-color: #f8d7da; /* Pale red */
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 8px 12px; /* Smaller button size */
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.btn-green:hover {
-    background-color: #45a049;
+.btn-pale-red:hover {
+    background-color: #f5c6cb; /* Slightly darker pale red */
+    border-color: #f1b0b7;
 }
 
-/* Neutral button for Close */
+/* Neutral Button for Close */
 .btn-neutral {
     background-color: #f1f1f1;
     color: #333;
-    border: none;
-    padding: 10px 15px;
+    border: 1px solid #ccc;
+    padding: 8px 12px; /* Smaller button size */
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .btn-neutral:hover {
     background-color: #ddd;
+    border-color: #bbb;
 }
 
 .forgot-password {
