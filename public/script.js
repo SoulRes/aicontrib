@@ -959,32 +959,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Contact Support - Store message in Firebase
-    const sendMessageBtn = document.getElementById('send-message-btn');
-    if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', function () {
-            const message = document.getElementById('contact-message').value;
-            const user = auth.currentUser;
+    sendMessageBtn.addEventListener('click', function () {
+        console.log("Button clicked"); // Log button click
+        const message = document.getElementById('contact-message').value;
+        console.log("Message content:", message); // Log message content
 
-            if (message) {
-                db.collection("supportMessages").add({
-                    uid: user.uid,
-                    email: user.email,
-                    message: message,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                })
-                .then(() => {
-                    document.getElementById('message-status').textContent = "Message sent successfully!";
-                    document.getElementById('contact-message').value = ''; // Clear the textarea
-                })
-                .catch((error) => {
-                    console.error("Error sending message: ", error);
-                    document.getElementById('message-status').textContent = "Failed to send message.";
-                });
-            } else {
-                document.getElementById('message-status').textContent = "Please enter a message.";
-            }
-        });
+        const user = auth.currentUser;
+        console.log("Authenticated user:", user); // Log current user
+
+        if (message) { // Temporarily skip user check for debugging
+            db.collection("supportMessages").add({
+                uid: user ? user.uid : "anonymous",
+                email: user ? user.email : "anonymous",
+                message: message,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                console.log("Message sent successfully!");
+                document.getElementById('message-status').textContent = "Message sent successfully!";
+            })
+            .catch((error) => {
+                console.error("Error sending message:", error);
+                document.getElementById('message-status').textContent = "Failed to send message.";
+            });
+        } else {
+            console.warn("No message entered.");
+            document.getElementById('message-status').textContent = "Please enter a message.";
+        }
+    });
     }
 
 });
