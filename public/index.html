@@ -156,12 +156,13 @@
     <!-- Contact Section -->
     <section id="contact" class="contact">
         <h2>Contact Us</h2>
-        <form id="contact-form" action="#">
-            <input type="text" placeholder="Your Name" required>
-            <input type="email" placeholder="Your Email" required>
-            <textarea placeholder="Your Message" required></textarea>
-            <button type="submit">Send</button>
+        <form id="contact-form" action="javascript:void(0);"> <!-- Prevent page reload -->
+            <input type="text" id="contact-name" placeholder="Your Name" required>
+            <input type="email" id="contact-email" placeholder="Your Email" required>
+            <textarea id="contact-message" placeholder="Your Message" required></textarea>
+            <button type="button" id="send-message-btn">Send</button>
         </form>
+        <p id="message-status" style="color: green; margin-top: 10px;"></p> <!-- Status indicator -->
     </section>
 
     <!-- Footer Section -->
