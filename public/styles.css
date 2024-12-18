@@ -321,9 +321,9 @@ input[type="text"], input[type="email"], input[type="password"] {
 
 /* Pale Red Button for Send Reset Link */
 .btn-pale-red {
-    background-color: #f8d7da; /* Pale red */
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: #4caf50; /* Pale red */
+    color: #fff;
+    border: 1px solid #4caf90;
     padding: 8px 12px; /* Smaller button size */
     border-radius: 4px;
     cursor: pointer;
@@ -331,8 +331,8 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 
 .btn-pale-red:hover {
-    background-color: #f5c6cb; /* Slightly darker pale red */
-    border-color: #f1b0b7;
+    background-color: #c3e6cb; /* Slightly darker pale red */
+    border-color: #c3e6cb;
 }
 
 /* Neutral Button for Close */
