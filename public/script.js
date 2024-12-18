@@ -67,6 +67,49 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.log("Login form not found on this page."); // Log this to avoid throwing errors
     }
+
+    // Contact Support - Store message in Firebase
+    const sendMessageBtn = document.getElementById('send-message-btn');
+    if (sendMessageBtn) {
+        console.log("Button found. Adding event listener."); // Confirm button exists
+
+        sendMessageBtn.addEventListener('click', function () {
+            console.log("Button clicked"); // Debug log for button click
+
+            // Get values from input fields
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const message = document.getElementById('contact-message').value;
+
+            // Validate input
+            if (name && email && message) {
+                console.log("All fields are filled. Proceeding to send to Firestore."); // Debug log
+
+                db.collection("supportMessages").add({
+                    name: name,                // Capture user's name
+                    email: email,              // Capture user's email
+                    message: message,          // Capture the message content
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() // Timestamp
+                })
+                .then(() => {
+                    console.log("Message sent successfully!");
+                    document.getElementById('message-status').textContent = "Message sent successfully!";
+                    
+                    // Clear the input fields
+                    document.getElementById('contact-name').value = '';
+                    document.getElementById('contact-email').value = '';
+                    document.getElementById('contact-message').value = '';
+                })
+                .catch((error) => {
+                    console.error("Error sending message:", error);
+                    document.getElementById('message-status').textContent = "Failed to send message.";
+                });
+            } else {
+                console.warn("Please fill in all fields."); // Debug warning
+                document.getElementById('message-status').textContent = "Please fill in all fields.";
+            }
+        });
+    }
     
     const buyButton = document.getElementById('buy-btn');
     if (!buyButton) {
@@ -958,38 +1001,4 @@ document.addEventListener('DOMContentLoaded', () => {
             languageOptions.classList.toggle('show'); // Toggle visibility of language options
         });
     }
-
-    // Contact Support - Store message in Firebase
-    const sendMessageBtn = document.getElementById('send-message-btn');
-    if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', function () {
-            console.log("Button clicked"); // Log button click
-            const message = document.getElementById('contact-message').value;
-            console.log("Message content:", message); // Log message content
-
-            const user = auth.currentUser;
-            console.log("Authenticated user:", user); // Log current user
-
-            if (message) { // Temporarily skip user check for debugging
-                db.collection("supportMessages").add({
-                    uid: user ? user.uid : "anonymous",
-                    email: user ? user.email : "anonymous",
-                    message: message,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                })
-                .then(() => {
-                    console.log("Message sent successfully!");
-                    document.getElementById('message-status').textContent = "Message sent successfully!";
-                })
-                .catch((error) => {
-                    console.error("Error sending message:", error);
-                    document.getElementById('message-status').textContent = "Failed to send message.";
-                });
-            } else {
-                console.warn("No message entered.");
-                document.getElementById('message-status').textContent = "Please enter a message.";
-            }
-        });
-    }
-
 });
