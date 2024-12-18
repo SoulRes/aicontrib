@@ -966,7 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const message = document.getElementById('contact-message').value;
             const user = auth.currentUser;
 
-            if (message && user) {
+            if (message) {
                 db.collection("supportMessages").add({
                     uid: user.uid,
                     email: user.email,
