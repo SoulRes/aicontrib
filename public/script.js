@@ -279,6 +279,54 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Ensure elements exist before attaching event listeners
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const resetPasswordBtn = document.getElementById('reset-password-btn');
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function () {
+            const modal = document.getElementById('password-reset-modal');
+            if (modal) {
+                modal.style.display = 'flex'; // Show modal
+            }
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function () {
+            const modal = document.getElementById('password-reset-modal');
+            if (modal) {
+                modal.style.display = 'none'; // Hide modal
+            }
+        });
+    }
+
+    if (resetPasswordBtn) {
+        resetPasswordBtn.addEventListener('click', async function () {
+            const emailInput = document.getElementById('reset-email');
+            if (emailInput) {
+                const email = emailInput.value.trim();
+                if (!email) {
+                    alert('Please enter your email address.');
+                    return;
+                }
+
+                try {
+                    await firebase.auth().sendPasswordResetEmail(email);
+                    alert('Password reset link has been sent to your email.');
+                    const modal = document.getElementById('password-reset-modal');
+                    if (modal) {
+                        modal.style.display = 'none'; // Hide modal after success
+                    }
+                } catch (error) {
+                    console.error('Error sending reset email:', error);
+                    alert('Error sending password reset link. Please try again later.');
+                }
+            }
+        });
+    }
+
     // Handle authenticated user display settings
     auth.onAuthStateChanged(async (user) => {
         if (user) {
