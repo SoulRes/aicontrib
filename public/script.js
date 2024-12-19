@@ -95,49 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore(); // Firestore for storing messages
     
     const rateInput = document.getElementById('rate-amount');
-
-    // Contact Support - Store message in Firebase
-    const sendMessageBtn = document.getElementById('send-message-btn');
-    if (sendMessageBtn) {
-        console.log("Button found. Adding event listener."); // Confirm button exists
-
-        sendMessageBtn.addEventListener('click', function () {
-            console.log("Button clicked"); // Debug log for button click
-
-            // Get values from input fields
-            const name = document.getElementById('contact-name').value;
-            const email = document.getElementById('contact-email').value;
-            const message = document.getElementById('contact-message').value;
-
-            // Validate input
-            if (name && email && message) {
-                console.log("All fields are filled. Proceeding to send to Firestore."); // Debug log
-
-                db.collection("supportMessages").add({
-                    name: name,                // Capture user's name
-                    email: email,              // Capture user's email
-                    message: message,          // Capture the message content
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp() // Timestamp
-                })
-                .then(() => {
-                    console.log("Message sent successfully!");
-                    document.getElementById('message-status').textContent = "Message sent successfully!";
-                    
-                    // Clear the input fields
-                    document.getElementById('contact-name').value = '';
-                    document.getElementById('contact-email').value = '';
-                    document.getElementById('contact-message').value = '';
-                })
-                .catch((error) => {
-                    console.error("Error sending message:", error);
-                    document.getElementById('message-status').textContent = "Failed to send message.";
-                });
-            } else {
-                console.warn("Please fill in all fields."); // Debug warning
-                document.getElementById('message-status').textContent = "Please fill in all fields.";
-            }
-        });
-    }
     
     function fetchRate() {
         const rateDocRef = db.collection("exchangeRates").doc("currentRate");
