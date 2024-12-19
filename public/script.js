@@ -279,35 +279,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Show the Password Reset Modal
-    document.getElementById('forgot-password-link').addEventListener('click', function () {
-        const modal = document.getElementById('password-reset-modal');
-        modal.style.display = 'flex'; // Show modal
-    });
-
-    document.getElementById('close-modal-btn').addEventListener('click', function () {
-        const modal = document.getElementById('password-reset-modal');
-        modal.style.display = 'none'; // Hide modal
-    });
-
-    document.getElementById('reset-password-btn').addEventListener('click', async function () {
-        const email = document.getElementById('reset-email').value.trim();
-
-        if (!email) {
-            alert('Please enter your email address.');
-            return;
-        }
-
-        try {
-            await firebase.auth().sendPasswordResetEmail(email);
-            alert('Password reset link has been sent to your email.');
-            document.getElementById('password-reset-modal').style.display = 'none'; // Hide modal after success
-        } catch (error) {
-            console.error('Error sending reset email:', error);
-            alert('Error sending password reset link. Please try again later.');
-        }
-    });
-
     // Handle authenticated user display settings
     auth.onAuthStateChanged(async (user) => {
         if (user) {
