@@ -60,21 +60,6 @@ function openForm(formType) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Ensure the login form is shown by default when the page loads
-    const loginFormElement = document.getElementById('login'); // Check if the login form exists
-    if (loginFormElement) {
-        openForm('login'); // Open the login form by default if it exists
-    } else {
-        console.log("Login form not found on this page."); // Log this to avoid throwing errors
-    }
-    
-    const buyButton = document.getElementById('buy-btn');
-    if (!buyButton) {
-        console.error('Buy button (buy-btn) not found in the DOM.');
-    }
-
-    switchSection('account');
-
     // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDj2fDwpstFATN1GqzKdEvNqSe3u8EnNNM",
@@ -93,6 +78,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     const auth = firebase.auth();
     const db = firebase.firestore(); // Firestore for storing messages
+    
+    // Ensure the login form is shown by default when the page loads
+    const loginFormElement = document.getElementById('login'); // Check if the login form exists
+    if (loginFormElement) {
+        openForm('login'); // Open the login form by default if it exists
+    } else {
+        console.log("Login form not found on this page."); // Log this to avoid throwing errors
+    }
+    
+    const buyButton = document.getElementById('buy-btn');
+    if (!buyButton) {
+        console.error('Buy button (buy-btn) not found in the DOM.');
+    }
+
+    switchSection('account');
     
     const rateInput = document.getElementById('rate-amount');
 
