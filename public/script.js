@@ -59,7 +59,7 @@ function openForm(formType) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", function () {
     // Ensure the login form is shown by default when the page loads
     const loginFormElement = document.getElementById('login'); // Check if the login form exists
     if (loginFormElement) {
