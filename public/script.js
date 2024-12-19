@@ -67,6 +67,34 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.log("Login form not found on this page."); // Log this to avoid throwing errors
     }
+    
+    const buyButton = document.getElementById('buy-btn');
+    if (!buyButton) {
+        console.error('Buy button (buy-btn) not found in the DOM.');
+    }
+
+    switchSection('account');
+
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDj2fDwpstFATN1GqzKdEvNqSe3u8EnNNM",
+        authDomain: "aicontribution.firebaseapp.com",
+        databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "aicontribution",
+        storageBucket: "aicontribution.appspot.com",
+        messagingSenderId: "847220817804",
+        appId: "1:847220817804:web:85e0307421f1ad87e4e0a9",
+        measurementId: "G-X9ZVDJLF8W"
+    };
+
+    // Initialize Firebase only once
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore(); // Firestore for storing messages
+    
+    const rateInput = document.getElementById('rate-amount');
 
     // Contact Support - Store message in Firebase
     const sendMessageBtn = document.getElementById('send-message-btn');
@@ -111,34 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const buyButton = document.getElementById('buy-btn');
-    if (!buyButton) {
-        console.error('Buy button (buy-btn) not found in the DOM.');
-    }
-
-    switchSection('account');
-
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDj2fDwpstFATN1GqzKdEvNqSe3u8EnNNM",
-        authDomain: "aicontribution.firebaseapp.com",
-        databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "aicontribution",
-        storageBucket: "aicontribution.appspot.com",
-        messagingSenderId: "847220817804",
-        appId: "1:847220817804:web:85e0307421f1ad87e4e0a9",
-        measurementId: "G-X9ZVDJLF8W"
-    };
-
-    // Initialize Firebase only once
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
-    const db = firebase.firestore(); // Firestore for storing messages
-    
-    const rateInput = document.getElementById('rate-amount');
-
     function fetchRate() {
         const rateDocRef = db.collection("exchangeRates").doc("currentRate");
 
