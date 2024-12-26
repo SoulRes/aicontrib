@@ -497,7 +497,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            await processPayment(1, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
+            await processPayment(499.9, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
             console.log('Payment processing initiated.'); // Debugging log
         } catch (error) {
             console.error('Error during payment:', error); // Log any error
