@@ -9,6 +9,29 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link rel="icon" href="photo/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Fetch user's country using ipapi.co API
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => {
+                const restrictedCountries = [
+                    'US', 'GB', 'RU', 'AT', 'BE', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI',
+                    'FR', 'DE', 'EL', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+                    'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'
+                ]; // EU countries except Bulgaria
+                
+                const userCountry = data.country_code;
+
+                if (restrictedCountries.includes(userCountry)) {
+                    // Redirect or block access
+                    document.body.innerHTML = `
+                        <h1>Access Denied</h1>
+                        <p>Your region (${data.country_name}) is not allowed to access this website.</p>
+                    `;
+                }
+            })
+            .catch(error => console.error('Error fetching user location:', error));
+    </script>
 </head>
 <body>
 
