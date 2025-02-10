@@ -229,19 +229,26 @@
             </div>
             <div id="referrals" class="content-section" style="display: none;">
                 <h2>Your Referral Dashboard</h2>
-                <p>Track your referrals and earnings here.</p>
 
-                <div class="referral-info">
-                    <p><strong>Your Referral Code:</strong> <span id="user-referral-code">N/A</span></p>
-                    <button id="copy-referral-code" class="btn">Copy Code</button>
+                <!-- Bonus Info Box -->
+                <div class="bonus-message">
+                    🎉 Invite your friends and earn <strong>$150</strong> for each successful referral!
                 </div>
 
-                <div class="total-referral-bonus">
+                <!-- Referral Code Box -->
+                <div class="referral-code-box">
+                    <p><strong>Your Referral Code:</strong> <span id="user-referral-code">N/A</span></p>
+                    <button id="copy-referral-code" class="btn-copy">Copy Code</button>
+                </div>
+
+                <!-- Total Bonus Display -->
+                <div class="total-bonus">
                     <p><strong>Total Referral Bonus:</strong> <span id="total-referral-bonus">0 USDT</span></p>
                 </div>
 
+                <!-- Referral Table -->
                 <div id="referral-list-container">
-                    <h3>Referral List</h3>
+                    <h3>Your Referrals</h3>
                     <table id="referral-table">
                         <thead>
                             <tr>
@@ -252,7 +259,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Referral data will be inserted dynamically here -->
+                            <!-- Referral data will be dynamically inserted here -->
                         </tbody>
                     </table>
                 </div>

@@ -1240,6 +1240,85 @@ button:hover {
     cursor: not-allowed;
 }
 
+/* Referral Dashboard Styling */
+#referrals {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* Bonus Message */
+.bonus-message {
+    background: #e0f3e0;
+    color: #2d852d;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Referral Code Box */
+.referral-code-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+}
+
+.referral-code-box p {
+    margin: 0;
+    font-size: 16px;
+}
+
+.btn-copy {
+    background: #007bff;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-copy:hover {
+    background: #0056b3;
+}
+
+/* Total Bonus Display */
+.total-bonus {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Referral Table */
+#referral-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#referral-table th, #referral-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#referral-table th {
+    background: #007bff;
+    color: white;
+}
+
+#referral-table tr:nth-child(even) {
+    background: #f2f2f2;
+}
 /* Settings Section */
 .settings-info {
     padding: 40px;
