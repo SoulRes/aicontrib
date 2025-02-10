@@ -1277,7 +1277,7 @@ button:hover {
 }
 
 .btn-copy {
-    background: #007bff;
+    background: #4CAF50; /* Green */
     color: #fff;
     padding: 8px 12px;
     border-radius: 5px;
@@ -1286,7 +1286,7 @@ button:hover {
 }
 
 .btn-copy:hover {
-    background: #0056b3;
+    background: #45a049;
 }
 
 /* Total Bonus Display */
@@ -1312,12 +1312,12 @@ button:hover {
 }
 
 #referral-table th {
-    background: #007bff;
+    background: #4CAF50; /* Green */
     color: white;
 }
 
 #referral-table tr:nth-child(even) {
-    background: #f2f2f2;
+    background: #e8f5e9; /* Light green */
 }
 /* Settings Section */
 .settings-info {
