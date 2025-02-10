@@ -41,6 +41,7 @@
             <button class="menu-item" onclick="switchSection('download')" id="download-section-link">Download</button>
             <button class="menu-item" onclick="switchSection('exchange')">Exchange</button>
             <button class="menu-item" onclick="switchSection('send')">Send Crypto</button>
+            <button class="menu-item" onclick="switchSection('referrals')">Referrals</button>
             <button class="menu-item" onclick="switchSection('settings')">Settings</button>
         </aside>
 
@@ -224,6 +225,36 @@
                     <div class="send-right">
                         <button id="send-btn" disabled>Send</button>
                     </div>
+                </div>
+            </div>
+            <div id="referrals" class="content-section" style="display: none;">
+                <h2>Your Referral Dashboard</h2>
+                <p>Track your referrals and earnings here.</p>
+
+                <div class="referral-info">
+                    <p><strong>Your Referral Code:</strong> <span id="user-referral-code">N/A</span></p>
+                    <button id="copy-referral-code" class="btn">Copy Code</button>
+                </div>
+
+                <div class="total-referral-bonus">
+                    <p><strong>Total Referral Bonus:</strong> <span id="total-referral-bonus">0 USDT</span></p>
+                </div>
+
+                <div id="referral-list-container">
+                    <h3>Referral List</h3>
+                    <table id="referral-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Date Joined</th>
+                                <th>Bonus Earned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Referral data will be inserted dynamically here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <!-- Settings Section -->
