@@ -58,14 +58,14 @@ app.use(cors({
     allowedHeaders: ["Content-Type"],
 }));
 
+// ✅ Use the referral validation API
+import checkReferralRoute from "./api/check-referral.js";
+app.use(checkReferralRoute);
+
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
 console.log("🛠️ BTCPay Store ID:", process.env.BTCPAY_STORE_ID || "Not Found");
 console.log("🛠️ BTCPay URL:", process.env.BTCPAY_URL || "Not Found");
-
-// ✅ Use the referral validation API
-import checkReferralRoute from "./api/check-referral.js";
-app.use(checkReferralRoute);
 
 /**
  * ✅ API: Check Referral Code Validity
