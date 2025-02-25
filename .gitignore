@@ -71,3 +71,4 @@ node_modules/
 backend/key.json
 serviceAccountKey.json
 config/serviceAccountKey.json
+config/serviceAccountKey.json
