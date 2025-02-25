@@ -20,14 +20,13 @@ try {
         console.log("🔥 Initializing Firebase...");
 
         let serviceAccount;
+
         if (process.env.FIREBASE_CREDENTIALS) {
+            console.log("✅ Using Firebase credentials from ENV");
             serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
-            console.log("✅ Using Firebase credentials from environment variables.");
         } else {
-            serviceAccount = JSON.parse(
-                fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8")
-            );
-            console.log("✅ Using Firebase credentials from serviceAccountKey.json.");
+            console.log("✅ Using local serviceAccountKey.json");
+            serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8"));
         }
 
         admin.initializeApp({
@@ -41,7 +40,7 @@ try {
     }
 } catch (error) {
     console.error("🚨 Firebase initialization failed:", error);
-    process.exit(1); // Stop the server if Firebase fails
+    process.exit(1);
 }
 
 const db = admin.firestore();
