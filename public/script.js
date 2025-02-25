@@ -541,17 +541,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    const API_URL = "https://aicontrib.vercel.app/api/check-referral";
+    
     // Function to validate referral code
     async function validateReferralCode(referralCode) {
         try {
-            const response = await fetch('api/check-referral', {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ referralCode })
             });
 
             const data = await response.json();
-            return response.ok && data.valid;
+            console.log("Referral check response:", data);
+
+            return data.valid;
         } catch (error) {
             console.error("Error checking referral code:", error);
             return false;
