@@ -22,11 +22,11 @@ try {
         let serviceAccount;
 
         if (process.env.FIREBASE_CREDENTIALS) {
-            // 🔹 Use the environment variable on Vercel
+            // 🔹 Use Firebase credentials from Vercel environment variables
             serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
             console.log("✅ Using Firebase credentials from environment variables.");
         } else {
-            // 🔹 Use the local file in development
+            // 🔹 Use local serviceAccountKey.json in development
             serviceAccount = JSON.parse(
                 fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8")
             );
@@ -47,19 +47,21 @@ try {
     process.exit(1); // Stop the server if Firebase fails
 }
 
+// ✅ Import check-referral route AFTER Firebase is initialized
+import checkReferralRoute from "./api/check-referral.js";
+
 const db = admin.firestore();
 const app = express();
 
-// ✅ Middleware
+// ✅ Middleware (Fixes CORS Issues)
 app.use(express.json());
 app.use(cors({
     origin: "*",  // ✅ Allow all origins
-    methods: ["POST"],
+    methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
 }));
 
-// ✅ Import check-referral route AFTER Firebase is initialized
-import checkReferralRoute from "./api/check-referral.js";
+// ✅ Apply Referral Route AFTER Middleware
 app.use(checkReferralRoute);
 
 // ✅ Log API Keys & Credentials
@@ -174,4 +176,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 export { db };  // ✅ Make Firestore DB accessible in other files
-
