@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 import cors from "cors";
 import admin from "firebase-admin";
 import fs from "fs";
-import checkReferralRoute from "./api/check-referral.js";
 
 // ✅ Load environment variables from .env
 dotenv.config();
