@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import admin from 'firebase-admin'; // Firebase Admin SDK
 import fs from 'fs';
+import checkReferralRoute from "./api/check-referral.js";
 
 // Load environment variables from the .env file
 dotenv.config();
@@ -22,12 +23,17 @@ console.log('BTCPay URL:', process.env.BTCPAY_URL || 'Not Found');
 
 const serviceAccount = JSON.parse(fs.readFileSync(process.env.FIREBASE_CREDENTIALS, 'utf-8'));
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.FIREBASE_DATABASE_URL
-});
+// Initialize Firebase only if it's not already initialized
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_CREDENTIALS)),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+    });
+}
 
 const db = admin.firestore();
+
+app.use(checkReferralRoute);
 
 /**
  * 🟢 API: Check Referral Code Validity
@@ -140,7 +146,5 @@ app.get('/', (req, res) => {
 });
 
 // Start the server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
