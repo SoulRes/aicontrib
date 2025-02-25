@@ -14,19 +14,16 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Firebase using serviceAccountKey.json (Local) or Environment Variable (Vercel)
+// ✅ Initialize Firebase (Move the Import Below This)
 try {
     if (!admin.apps.length) {
         console.log("🔥 Initializing Firebase...");
 
         let serviceAccount;
-
         if (process.env.FIREBASE_CREDENTIALS) {
-            // 🔹 Use Firebase credentials from Vercel environment variables
             serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
             console.log("✅ Using Firebase credentials from environment variables.");
         } else {
-            // 🔹 Use local serviceAccountKey.json in development
             serviceAccount = JSON.parse(
                 fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8")
             );
@@ -47,29 +44,19 @@ try {
     process.exit(1); // Stop the server if Firebase fails
 }
 
-// ✅ Import check-referral route AFTER Firebase is initialized
-import checkReferralRoute from "./api/check-referral.js";
-
 const db = admin.firestore();
 const app = express();
 
-// ✅ Middleware (Fixes CORS Issues)
+// ✅ Middleware
 app.use(express.json());
 app.use(cors({
-    origin: "*",  // Allow requests from any origin (you can replace "*" with your frontend URL)
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    origin: "*",  
+    methods: ["POST"],
+    allowedHeaders: ["Content-Type"],
 }));
 
-// Handle preflight requests for CORS
-app.options("*", (req, res) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.status(200).end();
-});
-
-// ✅ Apply Referral Route AFTER Middleware
+// ✅ Fix: Import check-referral AFTER Firebase Initialization
+import checkReferralRoute from "./api/check-referral.js";
 app.use(checkReferralRoute);
 
 // ✅ Log API Keys & Credentials
