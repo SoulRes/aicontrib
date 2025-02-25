@@ -65,6 +65,7 @@ console.log("🛠️ BTCPay Store ID:", process.env.BTCPAY_STORE_ID || "Not Foun
 console.log("🛠️ BTCPay URL:", process.env.BTCPAY_URL || "Not Found");
 
 // ✅ Use the referral validation API
+import checkReferralRoute from "./api/check-referral.js";
 app.use(checkReferralRoute);
 
 /**
