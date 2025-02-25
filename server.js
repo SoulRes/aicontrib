@@ -53,20 +53,21 @@ import checkReferralRoute from "./api/check-referral.js";
 const db = admin.firestore();
 const app = express();
 
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    next();
-});
-
 // ✅ Middleware (Fixes CORS Issues)
 app.use(express.json());
 app.use(cors({
-    origin: "*",  // ✅ Allow all origins
+    origin: "*",  // Allow requests from any origin (you can replace "*" with your frontend URL)
     methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Handle preflight requests for CORS
+app.options("*", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.status(200).end();
+});
 
 // ✅ Apply Referral Route AFTER Middleware
 app.use(checkReferralRoute);
