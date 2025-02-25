@@ -6,16 +6,15 @@ import dotenv from "dotenv";
 import cors from "cors";
 import admin from "firebase-admin";
 import fs from "fs";
-import checkReferralRoute from "./api/check-referral.js";
 
-// ✅ Load environment variables from .env
+// ✅ Load environment variables
 dotenv.config();
 
 // ✅ Get current directory (__dirname workaround for ES Modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Firebase using serviceAccountKey.json (Local) or Environment Variable (Vercel)
+// ✅ Initialize Firebase (Supports Both Local & Vercel)
 try {
     if (!admin.apps.length) {
         console.log("🔥 Initializing Firebase...");
@@ -23,11 +22,11 @@ try {
         let serviceAccount;
 
         if (process.env.FIREBASE_CREDENTIALS) {
-            // 🔹 Use the environment variable on Vercel
+            // 🔹 Use Firebase credentials from environment variables (for Vercel)
             serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
             console.log("✅ Using Firebase credentials from environment variables.");
         } else {
-            // 🔹 Use the local file in development
+            // 🔹 Use local serviceAccountKey.json for local development
             serviceAccount = JSON.parse(
                 fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8")
             );
@@ -64,7 +63,8 @@ console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found"
 console.log("🛠️ BTCPay Store ID:", process.env.BTCPAY_STORE_ID || "Not Found");
 console.log("🛠️ BTCPay URL:", process.env.BTCPAY_URL || "Not Found");
 
-// ✅ Use the referral validation API
+// ✅ Import check-referral route AFTER Firebase is initialized
+import checkReferralRoute from "./api/check-referral.js";
 app.use(checkReferralRoute);
 
 /**
