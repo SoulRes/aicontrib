@@ -15,15 +15,24 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Firebase using serviceAccountKey.json
+// ✅ Initialize Firebase using serviceAccountKey.json (Local) or Environment Variable (Vercel)
 try {
     if (!admin.apps.length) {
         console.log("🔥 Initializing Firebase...");
 
-        // Load the service account key from a local file
-        const serviceAccount = JSON.parse(
-            fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8")
-        );
+        let serviceAccount;
+
+        if (process.env.FIREBASE_CREDENTIALS) {
+            // 🔹 Use the environment variable on Vercel
+            serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
+            console.log("✅ Using Firebase credentials from environment variables.");
+        } else {
+            // 🔹 Use the local file in development
+            serviceAccount = JSON.parse(
+                fs.readFileSync(path.join(__dirname, "config", "serviceAccountKey.json"), "utf-8")
+            );
+            console.log("✅ Using Firebase credentials from serviceAccountKey.json.");
+        }
 
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
