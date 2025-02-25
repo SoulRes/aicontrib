@@ -544,7 +544,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to validate referral code
     async function validateReferralCode(referralCode) {
         try {
-            const response = await fetch('/check-referral', {
+            const response = await fetch('api/check-referral', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ referralCode })
