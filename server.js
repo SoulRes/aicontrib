@@ -7,7 +7,7 @@ import cors from "cors";
 import admin from "firebase-admin";
 import fs from "fs";
 
-// ✅ Load environment variables from .env
+// ✅ Load environment variables
 dotenv.config();
 
 // ✅ Get current directory (__dirname workaround for ES Modules)
@@ -58,7 +58,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type"],
 }));
 
-// ✅ Use the referral validation API
+// ✅ Import check-referral route AFTER Firebase is initialized
 import checkReferralRoute from "./api/check-referral.js";
 app.use(checkReferralRoute);
 
@@ -174,3 +174,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 export { db };  // ✅ Make Firestore DB accessible in other files
+
