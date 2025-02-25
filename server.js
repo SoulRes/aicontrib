@@ -44,7 +44,11 @@ const app = express();
 
 // ✅ Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: "*",  // ✅ Allow all origins
+    methods: ["POST"],
+    allowedHeaders: ["Content-Type"],
+}));
 
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
