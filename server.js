@@ -43,6 +43,9 @@ try {
     process.exit(1);
 }
 
+// ✅ Fix: Import check-referral AFTER Firebase Initialization
+import checkReferralRoute from "./api/check-referral.js";
+
 const db = admin.firestore();
 const app = express();
 
@@ -54,8 +57,6 @@ app.use(cors({
     allowedHeaders: ["Content-Type"],
 }));
 
-// ✅ Fix: Import check-referral AFTER Firebase Initialization
-import checkReferralRoute from "./api/check-referral.js";
 app.use(checkReferralRoute);
 
 // ✅ Log API Keys & Credentials
