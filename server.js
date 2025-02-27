@@ -43,9 +43,6 @@ try {
     process.exit(1);
 }
 
-// ✅ Fix: Import check-referral AFTER Firebase Initialization
-import checkReferralRoute from "./api/check-referral.js";
-
 const db = admin.firestore();
 const app = express();
 
@@ -56,6 +53,9 @@ app.use(cors({
     methods: ["POST"],
     allowedHeaders: ["Content-Type"],
 }));
+
+// ✅ Fix: Import check-referral AFTER Firebase Initialization
+import checkReferralRoute from "./api/check-referral.js";
 
 // ✅ Use the referral validation API properly
 app.use("/api/check-referral", checkReferralRoute);
