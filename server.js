@@ -51,8 +51,8 @@ const app = express();
 // ✅ Middleware
 app.use(express.json());
 app.use(cors({
-    origin: "*",  
-    methods: ["POST"],
+    origin: "*",  // ✅ Allow all origins
+    methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
 }));
 

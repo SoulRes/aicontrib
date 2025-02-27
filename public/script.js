@@ -541,7 +541,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    const API_URL = "/api/check-referral"; // Relative path
+    const API_URL = "/api/check-referral"; // ✅ Relative path
 
     async function validateReferralCode(referralCode) {
         console.log("🔍 Checking referral code:", referralCode);
