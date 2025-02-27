@@ -132,13 +132,12 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ✅ Import Routes AFTER Firebase Initialization
-import checkReferralRoute from "./api/check-referral.js";
-app.use("/api/check-referral", checkReferralRoute);  // ✅ Use the referral validation API properly
-
 // ✅ Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 export { db };  // ✅ Make Firestore DB accessible in other files
 
+// ✅ Import Routes AFTER Firebase Initialization
+import checkReferralRoute from "./api/check-referral.js";
+app.use("/api/check-referral", checkReferralRoute);  // ✅ Use the referral validation API properly
