@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { db } from "../server.js";
+import { db } from "../server.js";  // ✅ Import Firestore instance from server.js
 
 const router = Router();
 
-router.post("/api/check-referral", async (req, res) => {
+router.post("/check-referral", async (req, res) => {  // ✅ No need to add "/api" here, it's already handled in server.js
     const { referralCode } = req.body;
 
     console.log("🔍 Checking referral code:", referralCode);
@@ -32,4 +32,3 @@ router.post("/api/check-referral", async (req, res) => {
 });
 
 export default router;
-

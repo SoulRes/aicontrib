@@ -20,7 +20,6 @@ try {
         console.log("🔥 Initializing Firebase...");
 
         let serviceAccount;
-
         if (process.env.FIREBASE_CREDENTIALS) {
             console.log("✅ Using Firebase credentials from ENV");
             serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
@@ -58,43 +57,12 @@ app.use(cors({
 import checkReferralRoute from "./api/check-referral.js";
 
 // ✅ Use the referral validation API properly
-app.use("/api/check-referral", checkReferralRoute);
+app.use("/api", checkReferralRoute);
 
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
 console.log("🛠️ BTCPay Store ID:", process.env.BTCPAY_STORE_ID || "Not Found");
 console.log("🛠️ BTCPay URL:", process.env.BTCPAY_URL || "Not Found");
-
-/**
- * ✅ API: Check Referral Code Validity
- */
-app.post("/api/check-referral", async (req, res) => {
-    const { referralCode } = req.body;
-
-    console.log("🔍 Checking referral code:", referralCode);
-
-    if (!referralCode) {
-        return res.status(400).json({ error: "Referral code is required" });
-    }
-
-    try {
-        const querySnapshot = await db
-            .collection("users")
-            .where("referralCode", "==", referralCode)
-            .get();
-
-        if (querySnapshot.empty) {
-            console.log("❌ Invalid referral code:", referralCode);
-            return res.status(404).json({ valid: false, message: "Invalid referral code" });
-        }
-
-        console.log("✅ Valid referral code:", referralCode);
-        res.json({ valid: true, message: "Referral code is valid" });
-    } catch (error) {
-        console.error("🔥 Error checking referral code:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
 
 /**
  * ✅ API: Create Payment using BTCPay
