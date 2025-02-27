@@ -56,10 +56,6 @@ app.use(cors({
     allowedHeaders: ["Content-Type"],
 }));
 
-// ✅ Import Routes AFTER Firebase Initialization
-import checkReferralRoute from "./api/check-referral.js";
-app.use("/api/check-referral", checkReferralRoute);  // ✅ Use the referral validation API properly
-
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
 console.log("🛠️ BTCPay Store ID:", process.env.BTCPAY_STORE_ID || "Not Found");
@@ -135,6 +131,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+// ✅ Import Routes AFTER Firebase Initialization
+import checkReferralRoute from "./api/check-referral.js";
+app.use("/api/check-referral", checkReferralRoute);  // ✅ Use the referral validation API properly
 
 // ✅ Start the server
 const PORT = process.env.PORT || 5000;
