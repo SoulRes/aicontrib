@@ -58,7 +58,7 @@ app.use(cors({
 
 // ✅ Import Routes AFTER Firebase Initialization
 import checkReferralRoute from "./api/check-referral.js";
-app.use("/api", checkReferralRoute);  // ✅ Use the referral validation API properly
+app.use("/api/check-referral", checkReferralRoute);  // ✅ Use the referral validation API properly
 
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
