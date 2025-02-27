@@ -57,7 +57,7 @@ app.use(cors({
 import checkReferralRoute from "./api/check-referral.js";
 
 // ✅ Use the referral validation API properly
-app.use("/api", checkReferralRoute);
+app.use("/api/check-referral.js", checkReferralRoute);
 
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
