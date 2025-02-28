@@ -14,7 +14,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Firebase (Only Once)
+// ✅ Initialize Firebase
 try {
     if (!admin.apps.length) {
         console.log("🔥 Initializing Firebase...");
@@ -42,7 +42,7 @@ try {
     process.exit(1);
 }
 
-// ✅ Initialize Firestore
+// ✅ Initialize Firestore & Export for Routes
 const db = admin.firestore();
 
 // ✅ Create Express App
@@ -55,6 +55,15 @@ app.use(cors({
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
 }));
+
+import checkReferralRoute from "./api/check-referral.js";
+
+// Ensure checkReferralRoute is a valid function
+if (checkReferralRoute && typeof checkReferralRoute === "function") {
+    app.use("/api/check-referral", checkReferralRoute);
+} else {
+    console.error("🚨 Error: checkReferralRoute is not a valid function.");
+}
 
 // ✅ Log API Keys & Credentials
 console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found");
@@ -137,7 +146,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 export { db };  // ✅ Make Firestore DB accessible in other files
-
-// ✅ Import Routes AFTER Firebase Initialization
-import checkReferralRoute from "./api/check-referral.js";
-app.use("/api/check-referral", checkReferralRoute);  // ✅ Use the referral validation API properly

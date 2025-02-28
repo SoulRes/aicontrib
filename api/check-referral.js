@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { db } from "../server.js";  // ✅ Import Firestore instance from server.js
+import admin from "firebase-admin"; // Import Firebase Admin
+import { db } from "../server.js"; // ✅ Now this works!
 
 const router = Router();
 
-router.post("/check-referral", async (req, res) => {  // ✅ No need to add "/api" here, it's already handled in server.js
+router.post("/", async (req, res) => {  // 🔹 Remove `/api/` (it's already handled in `server.js`)
     const { referralCode } = req.body;
 
     console.log("🔍 Checking referral code:", referralCode);
