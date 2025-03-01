@@ -511,38 +511,42 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Referral Code Logic
-    const checkReferralButton = document.getElementById('check-referral-btn');
-    const referralInput = document.getElementById('referral-code');
-    const referralStatusImage = document.getElementById('referral-status-img');
-    const referralFeedback = document.getElementById('referral-feedback');
+    const checkReferralButton = document.getElementById("check-referral-btn");
+    const referralInput = document.getElementById("referral-code");
+    const referralStatusImage = document.getElementById("referral-status-img");
+    const referralFeedback = document.getElementById("referral-feedback");
+
+    const API_URL = "/api/check-referral"; // ✅ Relative path
 
     // Event Listener for "Check Referral" Button
-    checkReferralButton.addEventListener('click', async () => {
+    checkReferralButton.addEventListener("click", async () => {
         const referralCode = referralInput.value.trim();
 
         if (!referralCode) {
-            referralFeedback.textContent = 'Please enter a referral code.';
-            referralFeedback.style.color = '#f44336'; // Red for error
-            referralStatusImage.src = 'photo/fail.png';
+            showFeedback("Please enter a referral code.", "#f44336", "photo/fail.png");
             return;
         }
+
+        // ✅ Show Loading State
+        checkReferralButton.disabled = true;
+        showFeedback("Checking...", "#ff9800", "photo/loading.gif"); // Orange for loading
 
         // Validate referral code with backend
         const isValid = await validateReferralCode(referralCode);
 
+        // ✅ Restore Button & Show Result
+        checkReferralButton.disabled = false;
+        
         if (isValid) {
-            referralFeedback.textContent = 'Referral code is valid!';
-            referralFeedback.style.color = '#4caf50'; // Green for success
-            referralStatusImage.src = 'photo/success.png';
+            showFeedback("Referral code is valid!", "#4caf50", "photo/success.png");
         } else {
-            referralFeedback.textContent = 'Invalid referral code.';
-            referralFeedback.style.color = '#f44336'; // Red for failure
-            referralStatusImage.src = 'photo/fail.png';
+            showFeedback("Invalid referral code. Try again.", "#f44336", "photo/fail.png");
+            referralInput.value = ""; // Clear input for re-entry
+            referralInput.focus();
         }
     });
 
-    const API_URL = "/api/check-referral"; // ✅ Relative path
-
+    // Function to Validate Referral Code
     async function validateReferralCode(referralCode) {
         console.log("🔍 Checking referral code:", referralCode);
 
@@ -565,8 +569,16 @@ document.addEventListener("DOMContentLoaded", function () {
             return data.valid;
         } catch (error) {
             console.error("🚨 Error checking referral code:", error);
+            showFeedback("Error checking referral. Try again later.", "#f44336", "photo/fail.png");
             return false;
         }
+    }
+
+    // ✅ Helper Function: Update Feedback UI
+    function showFeedback(message, color, imageSrc) {
+        referralFeedback.textContent = message;
+        referralFeedback.style.color = color;
+        referralStatusImage.src = imageSrc;
     }
 
     // Function to handle payment
