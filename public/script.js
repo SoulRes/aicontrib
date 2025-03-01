@@ -521,12 +521,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let userReferralCode = ""; // Store user's referral code
 
-    // ✅ Fetch User's Referral Code (Ensures It Loads Before Validation)
+    // ✅ Fetch User's Referral Code
     async function getUserReferralCode() {
         try {
             const response = await fetch(USER_REFERRAL_URL);
             const data = await response.json();
-            userReferralCode = data.referralCode ? data.referralCode.trim().toLowerCase() : "";
+            userReferralCode = data.referralCode ? data.referralCode.trim() : "";
             console.log("📌 User's referral code:", userReferralCode);
         } catch (error) {
             console.error("🚨 Error fetching user referral code:", error);
@@ -540,7 +540,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (referralInput.value.trim().toLowerCase() === userReferralCode) {
+        if (referralInput.value.trim() === userReferralCode) {
             showFeedback("🚫 You cannot validate your own referral code!", "#f44336", "photo/fail.png");
             checkReferralButton.disabled = true;
         } else {
@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ✅ Check Referral Code Event
     checkReferralButton.addEventListener("click", async () => {
-        const referralCode = referralInput.value.trim().toLowerCase(); // Ensure lowercase comparison
+        const referralCode = referralInput.value.trim(); // Keep original case
 
         if (!referralCode) {
             showFeedback("⚠️ Please enter a referral code.", "#f44336", "photo/fail.png");
@@ -595,7 +595,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ referralCode }),
+                body: JSON.stringify({ referralCode }), // Keep case-sensitive
             });
 
             if (!response.ok) {
