@@ -1024,7 +1024,7 @@ input[type="number"], input[type="text"] {
 .check-referral-btn {
     height: 45px;
     padding: 0 20px;
-    background-color: #007bff;
+    background-color: #4caf50; /* Green */
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -1044,7 +1044,7 @@ input[type="number"], input[type="text"] {
 }
 
 .check-referral-btn:hover {
-    background-color: #0056b3;
+    background-color: #388e3c; /* Darker green on hover */
 }
 
 .check-referral-btn:disabled {

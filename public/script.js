@@ -516,8 +516,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const referralStatusImage = document.getElementById("referral-status-img");
     const referralFeedback = document.getElementById("referral-feedback");
 
-    const API_URL = "/api/check-referral"; 
-    const USER_REFERRAL_URL = "/api/user-referral"; // New API to get user's referral code
+    const API_URL = "/api/check-referral";
+    const USER_REFERRAL_URL = "/api/user-referral"; // API to get user's referral code
 
     let userReferralCode = ""; // Store the user's own referral code
 
@@ -536,7 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ Prevent User from Checking Their Own Referral Code
     referralInput.addEventListener("input", () => {
         if (referralInput.value.trim() === userReferralCode) {
-            showFeedback("You cannot validate your own referral code!", "#f44336", "photo/fail.png");
+            showFeedback("🚫 You cannot validate your own referral code!", "#f44336", "photo/fail.png");
             checkReferralButton.disabled = true;
         } else {
             referralFeedback.textContent = "";
@@ -549,30 +549,30 @@ document.addEventListener("DOMContentLoaded", function () {
         const referralCode = referralInput.value.trim();
 
         if (!referralCode) {
-            showFeedback("Please enter a referral code.", "#f44336", "photo/fail.png");
+            showFeedback("⚠️ Please enter a referral code.", "#f44336", "photo/fail.png");
             return;
         }
 
         if (referralCode === userReferralCode) {
-            showFeedback("You cannot validate your own referral code!", "#f44336", "photo/fail.png");
+            showFeedback("🚫 You cannot validate your own referral code!", "#f44336", "photo/fail.png");
             return;
         }
 
         // ✅ Show Loading State
         checkReferralButton.disabled = true;
-        showFeedback("Checking...", "#ff9800", "photo/loading.gif"); 
+        showFeedback("⏳ Checking...", "#ff9800", "photo/loading.gif");
 
         const isValid = await validateReferralCode(referralCode);
 
         // ✅ Restore Button & Show Result
         checkReferralButton.disabled = false;
-        
+
         if (isValid) {
             checkReferralButton.classList.add("success");
-            showFeedback("Referral code is valid!", "#4caf50", "photo/success.png");
+            showFeedback("✅ Referral code is valid!", "#4caf50", "photo/success.png");
         } else {
             checkReferralButton.classList.add("error");
-            showFeedback("Invalid referral code. Try again.", "#f44336", "photo/fail.png");
+            showFeedback("❌ Invalid referral code. Try again.", "#f44336", "photo/fail.png");
             referralInput.value = ""; // Clear input for re-entry
             referralInput.focus();
         }
@@ -601,7 +601,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return data.valid;
         } catch (error) {
             console.error("🚨 Error checking referral code:", error);
-            showFeedback("Error checking referral. Try again later.", "#f44336", "photo/fail.png");
+            showFeedback("⚠️ Error checking referral. Try again later.", "#f44336", "photo/fail.png");
             return false;
         }
     }
