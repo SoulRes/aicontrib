@@ -1,4 +1,3 @@
-// ✅ Import only necessary modules first
 import express from "express";
 import fetch from "node-fetch";
 import path from "path";
@@ -44,7 +43,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: "*",  
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
 }));
@@ -53,13 +52,19 @@ console.log("🛠️ BTCPay API Key:", process.env.BTCPAY_API_KEY || "Not Found"
 console.log("🛠️ BTCPay Store ID:", process.env.BTCPAY_STORE_ID || "Not Found");
 console.log("🛠️ BTCPay URL:", process.env.BTCPAY_URL || "Not Found");
 
-// ✅ Lazy Load Routes
+// ✅ Lazy Load Routes AFTER Firebase is initialized
 (async () => {
     const { default: checkReferralRoute } = await import("./api/check-referral.js");
-    
-    // ✅ Pass `db` to checkReferralRoute
+
+    // ✅ Ensure checkReferralRoute is properly initialized
+    if (!checkReferralRoute || typeof checkReferralRoute !== "function") {
+        console.error("🚨 checkReferralRoute is not a valid function!");
+        process.exit(1);
+    }
+
     app.use("/api/check-referral", checkReferralRoute(db));
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 })();
+
