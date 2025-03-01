@@ -211,44 +211,80 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Function to create or update a user document in Firestore with initial values
-    function createUserInFirestore(userEmail) {
+    // ✅ Function to create or update a user document in Firestore with initial values
+    function createUserInFirestore(userEmail, referralCodeUsed = null) {
         const userDocRef = db.collection("users").doc(userEmail);
 
         userDocRef.get()
             .then((doc) => {
                 if (doc.exists) {
-                    console.log("User document already exists. Skipping creation.");
+                    console.log("✅ User document already exists. Skipping creation.");
                 } else {
-                    // Set the user's initial values
+                    // ✅ Generate a unique referral code
+                    const newReferralCode = generateReferralCode(userEmail);
+
+                    let referrerId = null; // To store the referrer's email
+
+                    // ✅ If a referral code was used, find the referrer
+                    if (referralCodeUsed) {
+                        db.collection("users")
+                            .where("referralCode", "==", referralCodeUsed)
+                            .limit(1)
+                            .get()
+                            .then((snapshot) => {
+                                if (!snapshot.empty) {
+                                    const referrer = snapshot.docs[0];
+                                    referrerId = referrer.id; // Store referrer's user ID
+                                }
+                            })
+                            .catch((error) => {
+                                console.error("🚨 Error checking referrer:", error);
+                            });
+                    }
+
+                    // ✅ Set the user's initial values
                     userDocRef.set({
                         tmc: 0,           // Initial TMC balance
                         totalTMC: 0,      // Total earned TMC
                         usdt: 0,          // USDT balance
-                        status: 'Not Activated', // Default status
+                        status: "Not Activated", // Default status
                         email: userEmail, // Save the user's email for reference
-                        referralCode: generateReferralCode(userEmail), // Generate a referral code
-                        referredBy: null, // Initially no referral
-                        referralCount: 0, // Track the number of successful referrals
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for creation
+                        referralCode: newReferralCode, // Generate a unique referral code
+                        referredBy: referralCodeUsed || null, // Store referral code if used
+                        referralCount: 0, // Track number of successful referrals
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp() // Creation timestamp
                     })
                     .then(() => {
-                        console.log("User document created with initial values!");
+                        console.log("✅ User document created with initial values!");
+
+                        // ✅ If the user was referred, update the referrer's referrals subcollection
+                        if (referrerId) {
+                            db.collection("users").doc(referrerId)
+                                .collection("referrals")
+                                .doc(userEmail)
+                                .set({
+                                    email: userEmail,
+                                    status: "Pending", // Will be updated after payment
+                                    bonusEarned: 0,
+                                    dateJoined: firebase.firestore.FieldValue.serverTimestamp()
+                                })
+                                .then(() => console.log("✅ Referrer updated with new referral."))
+                                .catch((error) => console.error("🚨 Error updating referrer:", error));
+                        }
                     })
                     .catch((error) => {
-                        console.error("Error creating user document in Firestore: ", error);
+                        console.error("🚨 Error creating user document in Firestore:", error);
                     });
                 }
             })
             .catch((error) => {
-                console.error("Error checking user document in Firestore: ", error);
+                console.error("🚨 Error checking user document in Firestore:", error);
             });
     }
 
-    // Helper function to generate a referral code
+    // ✅ Helper function to generate a referral code
     function generateReferralCode(email) {
-        // Create a simple referral code from email
-        return email.split('@')[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+        return email.split("@")[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000);
     }
 
     // Firebase Authentication - Login with email verification check
@@ -621,9 +657,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔥 Fetch user referral code **before** allowing input
     getUserReferralCode();
 
-    // Function to handle payment
-    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode) {
-        console.log('processPayment called with:', { priceAmount, priceCurrency, paymentMethod, orderId, referralCode });
+    // Function to handle payment and track referrals
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId) {
+        console.log('📌 processPayment called with:', { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId });
 
         try {
             const response = await fetch('/api/create-payment', {
@@ -640,33 +676,44 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
-                console.log('Redirecting to:', data.checkoutLink);
+                console.log('✅ Redirecting to:', data.checkoutLink);
+
+                // ✅ Store referral code in Firestore **before** redirection
                 if (referralCode) {
-                    await saveReferralCodeToFirebase(referralCode);
+                    await saveReferralCodeToFirebase(referralCode, userId);
                 }
+
+                // ✅ Redirect to payment page
                 window.location.href = data.checkoutLink;
             } else {
-                console.error('Error processing payment:', data.error || 'No payment URL returned.');
+                console.error('❌ Error processing payment:', data.error || 'No payment URL returned.');
                 alert('Error: ' + (data.error || 'Unexpected error occurred.'));
             }
         } catch (error) {
-            console.error('Error in processPayment:', error);
+            console.error('🚨 Error in processPayment:', error);
         }
     }
 
-    // Function to save referral code in Firebase
-    async function saveReferralCodeToFirebase(referralCode) {
+    // ✅ Function to store referral code in Firestore
+    async function saveReferralCodeToFirebase(referralCode, userId) {
         try {
-            const user = firebase.auth().currentUser;
-            if (user) {
-                const userDocRef = db.collection('users').doc(user.email);
-                await userDocRef.update({ referredBy: referralCode });
-                console.log(`Referral code "${referralCode}" saved for user "${user.email}".`);
+            const response = await fetch('/api/store-referral', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ referralCode, userId }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log('✅ Referral code saved successfully:', referralCode);
+            } else {
+                console.error('❌ Error saving referral code:', data.error);
             }
         } catch (error) {
-            console.error('Error saving referral code to Firebase:', error);
+            console.error('🚨 Error saving referral code:', error);
         }
     }
+
     // Function to send confirmation email
     async function sendConfirmationEmail(toEmail, orderId, amount, currency) {
         try {
@@ -1065,6 +1112,42 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
     
+    async function loadReferralDashboard(userId) {
+        const userRef = db.collection("users").doc(userId);
+        const referralTable = document.querySelector("#referral-table tbody");
+        const totalBonusElement = document.getElementById("total-referral-bonus");
+        const referralCodeElement = document.getElementById("user-referral-code");
+
+        // ✅ Real-time listener for referral bonus
+        userRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const userData = doc.data();
+                referralCodeElement.textContent = userData.referralCode;
+                totalBonusElement.textContent = `${userData.usdt} USDT`;
+            }
+        });
+
+        // ✅ Real-time listener for referral list
+        userRef.collection("referrals").onSnapshot((snapshot) => {
+            referralTable.innerHTML = ""; // Clear old data
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                referralTable.innerHTML += `
+                    <tr>
+                        <td>${data.email}</td>
+                        <td>${data.status}</td>
+                        <td>${new Date(data.dateJoined).toLocaleDateString()}</td>
+                        <td>${data.bonusEarned} USDT</td>
+                    </tr>
+                `;
+            });
+        });
+    }
+
+    // 🔥 Load referral dashboard after user logs in
+    const userId = "currentUser123"; // Replace with actual user ID
+    loadReferralDashboard(userId);
+
     // Change Password Logic
     const changePasswordLink = document.getElementById('change-password-link');
     if (changePasswordLink) {
