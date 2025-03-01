@@ -519,14 +519,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const API_URL = "/api/check-referral";
     const USER_REFERRAL_URL = "/api/user-referral"; // API to get user's referral code
 
-    let userReferralCode = ""; // Store the user's own referral code
+    let userReferralCode = ""; // Store user's referral code
 
-    // ✅ Fetch User's Referral Code (Prevent Self-Validation)
+    // ✅ Fetch User's Referral Code (Ensures It Loads Before Validation)
     async function getUserReferralCode() {
         try {
             const response = await fetch(USER_REFERRAL_URL);
             const data = await response.json();
-            userReferralCode = data.referralCode || "";
+            userReferralCode = data.referralCode ? data.referralCode.trim().toLowerCase() : "";
             console.log("📌 User's referral code:", userReferralCode);
         } catch (error) {
             console.error("🚨 Error fetching user referral code:", error);
@@ -535,7 +535,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ✅ Prevent User from Checking Their Own Referral Code
     referralInput.addEventListener("input", () => {
-        if (referralInput.value.trim() === userReferralCode) {
+        if (!userReferralCode) {
+            console.warn("⚠️ User referral code is not loaded yet!");
+            return;
+        }
+
+        if (referralInput.value.trim().toLowerCase() === userReferralCode) {
             showFeedback("🚫 You cannot validate your own referral code!", "#f44336", "photo/fail.png");
             checkReferralButton.disabled = true;
         } else {
@@ -546,7 +551,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ✅ Check Referral Code Event
     checkReferralButton.addEventListener("click", async () => {
-        const referralCode = referralInput.value.trim();
+        const referralCode = referralInput.value.trim().toLowerCase(); // Ensure lowercase comparison
 
         if (!referralCode) {
             showFeedback("⚠️ Please enter a referral code.", "#f44336", "photo/fail.png");
@@ -613,7 +618,7 @@ document.addEventListener("DOMContentLoaded", function () {
         referralStatusImage.src = imageSrc;
     }
 
-    // 🔥 Fetch user referral code on load
+    // 🔥 Fetch user referral code **before** allowing input
     getUserReferralCode();
 
     // Function to handle payment
