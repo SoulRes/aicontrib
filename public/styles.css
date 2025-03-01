@@ -1008,45 +1008,63 @@ input[type="number"], input[type="text"] {
 
 .referral-input {
     flex: 1;
-    height: 40px;
-    padding: 8px;
+    height: 45px;
+    padding: 10px;
     font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+}
+
+.referral-input:focus {
+    border-color: #007bff;
+    outline: none;
 }
 
 .check-referral-btn {
-    width: 40px;
-    height: 40px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    height: 45px;
+    padding: 0 20px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .check-referral-btn img {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+}
+
+.check-referral-btn:hover {
+    background-color: #0056b3;
+}
+
+.check-referral-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 
 .check-referral-btn.success {
     background-color: #4caf50;
-    border-color: #4caf50;
 }
 
 .check-referral-btn.error {
     background-color: #f44336;
-    border-color: #f44336;
 }
 
 .referral-feedback {
     color: #f44336;
     font-size: 14px;
     margin-top: 5px;
+    font-weight: bold;
 }
 
 /* Exchange Section Slider */

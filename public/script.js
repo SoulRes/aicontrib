@@ -516,9 +516,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const referralStatusImage = document.getElementById("referral-status-img");
     const referralFeedback = document.getElementById("referral-feedback");
 
-    const API_URL = "/api/check-referral"; // ✅ Relative path
+    const API_URL = "/api/check-referral"; 
+    const USER_REFERRAL_URL = "/api/user-referral"; // New API to get user's referral code
 
-    // Event Listener for "Check Referral" Button
+    let userReferralCode = ""; // Store the user's own referral code
+
+    // ✅ Fetch User's Referral Code (Prevent Self-Validation)
+    async function getUserReferralCode() {
+        try {
+            const response = await fetch(USER_REFERRAL_URL);
+            const data = await response.json();
+            userReferralCode = data.referralCode || "";
+            console.log("📌 User's referral code:", userReferralCode);
+        } catch (error) {
+            console.error("🚨 Error fetching user referral code:", error);
+        }
+    }
+
+    // ✅ Prevent User from Checking Their Own Referral Code
+    referralInput.addEventListener("input", () => {
+        if (referralInput.value.trim() === userReferralCode) {
+            showFeedback("You cannot validate your own referral code!", "#f44336", "photo/fail.png");
+            checkReferralButton.disabled = true;
+        } else {
+            referralFeedback.textContent = "";
+            checkReferralButton.disabled = false;
+        }
+    });
+
+    // ✅ Check Referral Code Event
     checkReferralButton.addEventListener("click", async () => {
         const referralCode = referralInput.value.trim();
 
@@ -527,26 +553,36 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (referralCode === userReferralCode) {
+            showFeedback("You cannot validate your own referral code!", "#f44336", "photo/fail.png");
+            return;
+        }
+
         // ✅ Show Loading State
         checkReferralButton.disabled = true;
-        showFeedback("Checking...", "#ff9800", "photo/loading.gif"); // Orange for loading
+        showFeedback("Checking...", "#ff9800", "photo/loading.gif"); 
 
-        // Validate referral code with backend
         const isValid = await validateReferralCode(referralCode);
 
         // ✅ Restore Button & Show Result
         checkReferralButton.disabled = false;
         
         if (isValid) {
+            checkReferralButton.classList.add("success");
             showFeedback("Referral code is valid!", "#4caf50", "photo/success.png");
         } else {
+            checkReferralButton.classList.add("error");
             showFeedback("Invalid referral code. Try again.", "#f44336", "photo/fail.png");
             referralInput.value = ""; // Clear input for re-entry
             referralInput.focus();
         }
+
+        setTimeout(() => {
+            checkReferralButton.classList.remove("success", "error"); // Reset button color after 2 sec
+        }, 2000);
     });
 
-    // Function to Validate Referral Code
+    // ✅ Validate Referral Code with Backend
     async function validateReferralCode(referralCode) {
         console.log("🔍 Checking referral code:", referralCode);
 
@@ -557,15 +593,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({ referralCode }),
             });
 
-            console.log("✅ Server response:", response);
-
             if (!response.ok) {
                 throw new Error(`Server returned ${response.status}`);
             }
 
             const data = await response.json();
-            console.log("✅ Referral check response:", data);
-
             return data.valid;
         } catch (error) {
             console.error("🚨 Error checking referral code:", error);
@@ -580,6 +612,9 @@ document.addEventListener("DOMContentLoaded", function () {
         referralFeedback.style.color = color;
         referralStatusImage.src = imageSrc;
     }
+
+    // 🔥 Fetch user referral code on load
+    getUserReferralCode();
 
     // Function to handle payment
     async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode) {
