@@ -1,8 +1,22 @@
-app.post("/api/payment-success", async (req, res) => {
-    const { userId, amountPaid } = req.body;
-    const referralBonus = 150; // Bonus for referrer
+import admin from "firebase-admin";
 
-    console.log("🛠 Payment processing for:", userId, "Amount:", amountPaid);
+// ✅ Initialize Firebase Admin if not already initialized
+if (!admin.apps.length) {
+    admin.initializeApp();
+}
+
+const db = admin.firestore();
+
+// ✅ Serverless Function for Payment Success
+export default async function handler(req, res) {
+    if (req.method !== "POST") {
+        return res.status(405).json({ error: "Method Not Allowed" });
+    }
+
+    const { userId, amountPaid } = req.body;
+    const referralBonus = 150; // Bonus per referral
+
+    console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid);
 
     try {
         // ✅ Get the user who made the payment
@@ -11,7 +25,7 @@ app.post("/api/payment-success", async (req, res) => {
             console.log("❌ User not found in Firestore");
             return res.status(404).json({ error: "User not found" });
         }
-        
+
         const userData = userDoc.data();
         console.log("📌 User Data:", userData);
 
@@ -62,5 +76,4 @@ app.post("/api/payment-success", async (req, res) => {
         console.error("🚨 Error handling payment:", error);
         return res.status(500).json({ error: "Server error" });
     }
-});
-
+}
