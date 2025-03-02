@@ -657,40 +657,58 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔥 Fetch user referral code **before** allowing input
     getUserReferralCode();
 
-    // Function to handle payment and track referrals
     async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId) {
-        console.log('📌 processPayment called with:', { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId });
+        console.log("🛠 processPayment called:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId });
 
         try {
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    price: priceAmount,
-                    currency: priceCurrency,
-                    paymentMethod,
-                    orderId,
-                }),
+                body: JSON.stringify({ price: priceAmount, currency: priceCurrency, paymentMethod, orderId })
             });
 
             const data = await response.json();
 
             if (response.ok && data.checkoutLink) {
-                console.log('✅ Redirecting to:', data.checkoutLink);
+                console.log("✅ Redirecting to:", data.checkoutLink);
 
-                // ✅ Store referral code in Firestore **before** redirection
+                // ✅ Store referral before payment
                 if (referralCode) {
+                    console.log("📝 Saving referral code:", referralCode);
                     await saveReferralCodeToFirebase(referralCode, userId);
                 }
 
-                // ✅ Redirect to payment page
+                // ✅ Send payment success to backend
+                console.log("📤 Sending payment confirmation...");
+                await sendPaymentSuccess(userId, priceAmount);
+
                 window.location.href = data.checkoutLink;
             } else {
-                console.error('❌ Error processing payment:', data.error || 'No payment URL returned.');
-                alert('Error: ' + (data.error || 'Unexpected error occurred.'));
+                console.error("❌ Payment error:", data.error || "No checkout link.");
+                alert("Payment failed.");
             }
         } catch (error) {
-            console.error('🚨 Error in processPayment:', error);
+            console.error("🚨 Error in processPayment:", error);
+        }
+    }
+
+    // ✅ Function to notify the backend about successful payment
+    async function sendPaymentSuccess(userId, amountPaid) {
+        try {
+            const response = await fetch("/api/payment-success", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, amountPaid })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log("✅ Payment success recorded:", data.message);
+            } else {
+                console.error("❌ Payment success failed:", data.error);
+            }
+        } catch (error) {
+            console.error("🚨 Error sending payment success:", error);
         }
     }
 
