@@ -24,7 +24,9 @@ export default async function handler(req, res) {
     console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
 
     try {
-        const userDoc = await db.collection("users").doc(userId).get();
+        const userDocRef = db.collection("users").doc(userId);
+        const userDoc = await userDocRef.get();
+
         if (!userDoc.exists) {
             console.log("❌ User not found in Firestore");
             return res.status(404).json({ error: "User not found" });
@@ -83,8 +85,14 @@ export default async function handler(req, res) {
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        console.log("✅ Payment success, referrer updated!");
-        return res.json({ success: true, message: "Payment recorded, referrer updated" });
+        // ✅ Activate the user's account after payment
+        await userDocRef.update({
+            status: "Activated",
+            activationDate: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log("✅ Payment success, account activated!");
+        return res.json({ success: true, message: "Payment recorded, referrer updated, and account activated" });
     } catch (error) {
         console.error("🚨 Error handling payment:", error);
         return res.status(500).json({ error: "Server error" });
