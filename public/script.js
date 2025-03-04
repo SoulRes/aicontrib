@@ -1229,12 +1229,15 @@ document.addEventListener("DOMContentLoaded", function () {
             console.warn("⚠️ Copy button not found!");
         }
 
-        // ✅ Load Referral Dashboard if User is Logged In
-        firebase.auth().onAuthStateChanged((user) => {
+        firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
-                console.log("✅ Logged-in user:", user.uid);
-                loadReferralDashboard(user.uid);
-                fetchReferralDetails(user.uid);
+                console.log("✅ Logged-in user:", user.email);
+
+                // ✅ Use email instead of UID if Firestore documents are stored by email
+                const normalizedEmail = user.email.toLowerCase(); // Normalize email to match Firestore format
+
+                loadReferralDashboard(normalizedEmail);
+                fetchReferralDetails(normalizedEmail);
             } else {
                 console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
             }
