@@ -693,12 +693,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Notify Backend & Send Email
-    async function sendPaymentSuccess(userId, amountPaid, toEmail, orderId, currency) {
+    async function sendPaymentSuccess(userId, amountPaid, toEmail, orderId, currency, referralCode = null) {
         try {
             const response = await fetch("/api/payment-success", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, amountPaid })
+                body: JSON.stringify({ userId, amountPaid, referralCode })
             });
 
             const data = await response.json();
