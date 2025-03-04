@@ -1132,9 +1132,6 @@ document.addEventListener("DOMContentLoaded", function () {
         
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
-    
-    // ✅ Firestore reference (Ensure Firebase is initialized)
-    const db = firebase.firestore();
 
     // ✅ Function to Load Referral Dashboard
     async function loadReferralDashboard(userId) {
