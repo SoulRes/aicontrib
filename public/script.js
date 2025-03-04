@@ -1133,6 +1133,7 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
     
+    // ✅ Function to Load Referral Dashboard
     async function loadReferralDashboard(userId) {
         try {
             const userRef = db.collection("users").doc(userId);
@@ -1140,18 +1141,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const totalBonusElement = document.getElementById("total-referral-bonus");
             const referralCodeElement = document.getElementById("user-referral-code");
 
-            // ✅ Real-time listener for user data
+            // ✅ Real-time listener for user referral data
             userRef.onSnapshot((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
                     referralCodeElement.textContent = userData.referralCode || "N/A";
                     totalBonusElement.textContent = `${userData.usdt || 0} USDT`;
+                } else {
+                    console.warn("⚠️ User data not found!");
                 }
             });
 
             // ✅ Real-time listener for referral list
             userRef.collection("referrals").onSnapshot((snapshot) => {
-                referralTable.innerHTML = ""; // Clear old data before appending new rows
+                referralTable.innerHTML = ""; // Clear table before updating
 
                 if (snapshot.empty) {
                     referralTable.innerHTML = `<tr><td colspan="4">No referrals yet</td></tr>`;
@@ -1162,14 +1165,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     const data = doc.data();
                     const formattedDate = data.dateJoined ? new Date(data.dateJoined).toLocaleDateString() : "N/A";
 
-                    referralTable.innerHTML += `
-                        <tr>
-                            <td>${data.email || "N/A"}</td>
-                            <td>${data.status || "Pending"}</td>
-                            <td>${formattedDate}</td>
-                            <td>${data.bonusEarned || 0} USDT</td>
-                        </tr>
+                    // ✅ Insert referral data into the table
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${data.email || "N/A"}</td>
+                        <td>${data.status || "Pending"}</td>
+                        <td>${formattedDate}</td>
+                        <td>${data.bonusEarned || 0} USDT</td>
                     `;
+                    referralTable.appendChild(row);
                 });
             });
         } catch (error) {
@@ -1177,8 +1181,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // 🔥 Load referral dashboard after user logs in
-    const userId = "currentUser123"; // Replace with actual user ID from authentication
+    // ✅ Function to Copy Referral Code
+    function copyReferralCode() {
+        const referralCodeElement = document.getElementById("user-referral-code");
+        const referralCode = referralCodeElement.textContent;
+
+        if (referralCode !== "N/A") {
+            navigator.clipboard.writeText(referralCode).then(() => {
+                alert("✅ Referral code copied to clipboard!");
+            }).catch(err => {
+                console.error("❌ Failed to copy:", err);
+            });
+        } else {
+            alert("⚠️ No referral code available to copy.");
+        }
+    }
+
+    // ✅ Attach Copy Button Event Listener
+    document.getElementById("copy-referral-code").addEventListener("click", copyReferralCode);
+
+    // 🔥 Load Referral Dashboard after User Logs In
+    const userId = "currentUser123"; // Replace with actual user ID
     loadReferralDashboard(userId);
 
     // Change Password Logic
