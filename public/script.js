@@ -1133,15 +1133,31 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
     
+    // ✅ Firestore reference (Ensure Firebase is initialized)
+    const db = firebase.firestore();
+
     // ✅ Function to Load Referral Dashboard
     async function loadReferralDashboard(userId) {
         try {
+            if (!userId) {
+                console.warn("⚠️ No user ID provided.");
+                return;
+            }
+
             const userRef = db.collection("users").doc(userId);
             const referralTable = document.querySelector("#referral-table tbody");
             const totalBonusElement = document.getElementById("total-referral-bonus");
             const referralCodeElement = document.getElementById("user-referral-code");
 
-            // ✅ Real-time listener for user referral data
+            // Ensure elements exist before accessing them
+            if (!referralTable || !totalBonusElement || !referralCodeElement) {
+                console.error("❌ Referral dashboard elements not found!");
+                return;
+            }
+
+            console.log("📡 Listening for referral data...");
+
+            // ✅ Listen for user referral data updates
             userRef.onSnapshot((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
@@ -1152,9 +1168,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
-            // ✅ Real-time listener for referral list
+            // ✅ Listen for real-time referral updates
             userRef.collection("referrals").onSnapshot((snapshot) => {
-                referralTable.innerHTML = ""; // Clear table before updating
+                referralTable.innerHTML = ""; // Clear table
 
                 if (snapshot.empty) {
                     referralTable.innerHTML = `<tr><td colspan="4">No referrals yet</td></tr>`;
@@ -1181,28 +1197,57 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ✅ Function to Fetch Referral Details
+    async function fetchReferralDetails(userId) {
+        try {
+            console.log("🔍 Fetching referral details for", userId);
+
+            const response = await fetch(`https://www.aicontrib.com/api/user-referral?userId=${userId}`);
+            if (!response.ok) throw new Error(`❌ API error: ${response.status}`);
+
+            const data = await response.json();
+            console.log("✅ Referral details fetched:", data);
+
+            return data;
+        } catch (error) {
+            console.error("🚨 Error fetching user referral code:", error);
+        }
+    }
+
     // ✅ Function to Copy Referral Code
     function copyReferralCode() {
         const referralCodeElement = document.getElementById("user-referral-code");
-        const referralCode = referralCodeElement.textContent;
+        if (!referralCodeElement) {
+            console.error("❌ Referral code element not found!");
+            return;
+        }
 
+        const referralCode = referralCodeElement.textContent;
         if (referralCode !== "N/A") {
-            navigator.clipboard.writeText(referralCode).then(() => {
-                alert("✅ Referral code copied to clipboard!");
-            }).catch(err => {
-                console.error("❌ Failed to copy:", err);
-            });
+            navigator.clipboard.writeText(referralCode)
+                .then(() => alert("✅ Referral code copied!"))
+                .catch(err => console.error("❌ Copy failed:", err));
         } else {
             alert("⚠️ No referral code available to copy.");
         }
     }
 
-    // ✅ Attach Copy Button Event Listener
-    document.getElementById("copy-referral-code").addEventListener("click", copyReferralCode);
+    // ✅ Attach Event Listener for Copy Button
+    const copyButton = document.getElementById("copy-referral-code");
+    if (copyButton) {
+        copyButton.addEventListener("click", copyReferralCode);
+    } else {
+        console.warn("⚠️ Copy button not found!");
+    }
 
-    // 🔥 Load Referral Dashboard after User Logs In
+    // ✅ Load Referral Dashboard if User is Logged In
     const userId = "currentUser123"; // Replace with actual user ID
-    loadReferralDashboard(userId);
+    if (userId) {
+        loadReferralDashboard(userId);
+        fetchReferralDetails(userId);
+    } else {
+        console.warn("⚠️ User ID not set. Unable to load referral dashboard.");
+    }
 
     // Change Password Logic
     const changePasswordLink = document.getElementById('change-password-link');
