@@ -18,10 +18,10 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { userId, amountPaid } = req.body;
+    const { userId, amountPaid, referralCode } = req.body;
     const referralBonus = 150;
 
-    console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid);
+    console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
 
     try {
         const userDoc = await db.collection("users").doc(userId).get();
@@ -33,36 +33,51 @@ export default async function handler(req, res) {
         const userData = userDoc.data();
         console.log("📌 User Data:", userData);
 
-        const referrerCode = userData.referredBy;
-        if (!referrerCode) {
-            console.log("⚠️ No referral code used.");
+        // ✅ Ensure referralCode exists in request
+        if (!referralCode) {
+            console.log("⚠️ No referral code provided.");
             return res.json({ message: "No referral linked to this purchase" });
         }
 
+        // ✅ Check if referralCode exists in Firestore
         const referrerSnapshot = await db.collection("users")
-            .where("referralCode", "==", referrerCode)
+            .where("referralCode", "==", referralCode)
             .limit(1)
             .get();
 
         if (referrerSnapshot.empty) {
-            console.log("❌ Referrer not found for code:", referrerCode);
-            return res.status(404).json({ error: "Referrer not found" });
+            console.log("❌ No user found with this referral code:", referralCode);
+            return res.status(404).json({ error: "Invalid referral code" });
         }
 
         const referrerDoc = referrerSnapshot.docs[0];
         const referrerId = referrerDoc.id;
         console.log("✅ Referrer found:", referrerId);
 
+        // ✅ Update referrer's USDT balance and referral count
         await db.collection("users").doc(referrerId).update({
             usdt: admin.firestore.FieldValue.increment(referralBonus),
             referralCount: admin.firestore.FieldValue.increment(1)
         });
 
-        await db.collection("users").doc(referrerId).collection("referrals").doc(userId).update({
-            status: "Paid",
-            bonusEarned: referralBonus
-        });
+        // ✅ Update referral status for the referred user
+        const referralRef = db.collection("users").doc(referrerId).collection("referrals").doc(userId);
+        const referralDoc = await referralRef.get();
 
+        if (referralDoc.exists) {
+            await referralRef.update({
+                status: "Paid",
+                bonusEarned: referralBonus
+            });
+        } else {
+            await referralRef.set({
+                status: "Paid",
+                bonusEarned: referralBonus,
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        // ✅ Log purchase for the user
         await db.collection("users").doc(userId).collection("purchases").add({
             amount: amountPaid,
             timestamp: admin.firestore.FieldValue.serverTimestamp()
