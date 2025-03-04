@@ -1,4 +1,3 @@
-import sendConfirmationEmail from './sendConfirmationEmail'; // Import email function
 import db from './firebase'; // Import Firebase Firestore configuration
 
 // Callback function to handle payment status updates from BTCPay (IPN Callback)

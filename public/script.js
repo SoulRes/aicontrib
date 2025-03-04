@@ -657,8 +657,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔥 Fetch user referral code **before** allowing input
     getUserReferralCode();
 
-    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId) {
-        console.log("🛠 processPayment called:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId });
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId, toEmail) {
+        console.log("🛠 processPayment called:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId, toEmail });
 
         try {
             const response = await fetch('/api/create-payment', {
@@ -678,9 +678,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     await saveReferralCodeToFirebase(referralCode, userId);
                 }
 
-                // ✅ Send payment success to backend
+                // ✅ Send payment success & email
                 console.log("📤 Sending payment confirmation...");
-                await sendPaymentSuccess(userId, priceAmount);
+                await sendPaymentSuccess(userId, priceAmount, toEmail, orderId, priceCurrency);
 
                 window.location.href = data.checkoutLink;
             } else {
@@ -692,8 +692,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Function to notify the backend about successful payment
-    async function sendPaymentSuccess(userId, amountPaid) {
+    // ✅ Notify Backend & Send Email
+    async function sendPaymentSuccess(userId, amountPaid, toEmail, orderId, currency) {
         try {
             const response = await fetch("/api/payment-success", {
                 method: "POST",
@@ -704,6 +704,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             if (data.success) {
                 console.log("✅ Payment success recorded:", data.message);
+
+                // ✅ Send Confirmation Email from Frontend
+                await sendConfirmationEmail(toEmail, orderId, amountPaid, currency);
             } else {
                 console.error("❌ Payment success failed:", data.error);
             }
