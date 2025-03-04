@@ -1134,39 +1134,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     async function loadReferralDashboard(userId) {
-        const userRef = db.collection("users").doc(userId);
-        const referralTable = document.querySelector("#referral-table tbody");
-        const totalBonusElement = document.getElementById("total-referral-bonus");
-        const referralCodeElement = document.getElementById("user-referral-code");
+        try {
+            const userRef = db.collection("users").doc(userId);
+            const referralTable = document.querySelector("#referral-table tbody");
+            const totalBonusElement = document.getElementById("total-referral-bonus");
+            const referralCodeElement = document.getElementById("user-referral-code");
 
-        // ✅ Real-time listener for referral bonus
-        userRef.onSnapshot((doc) => {
-            if (doc.exists) {
-                const userData = doc.data();
-                referralCodeElement.textContent = userData.referralCode;
-                totalBonusElement.textContent = `${userData.usdt} USDT`;
-            }
-        });
-
-        // ✅ Real-time listener for referral list
-        userRef.collection("referrals").onSnapshot((snapshot) => {
-            referralTable.innerHTML = ""; // Clear old data
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                referralTable.innerHTML += `
-                    <tr>
-                        <td>${data.email}</td>
-                        <td>${data.status}</td>
-                        <td>${new Date(data.dateJoined).toLocaleDateString()}</td>
-                        <td>${data.bonusEarned} USDT</td>
-                    </tr>
-                `;
+            // ✅ Real-time listener for user data
+            userRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    referralCodeElement.textContent = userData.referralCode || "N/A";
+                    totalBonusElement.textContent = `${userData.usdt || 0} USDT`;
+                }
             });
-        });
+
+            // ✅ Real-time listener for referral list
+            userRef.collection("referrals").onSnapshot((snapshot) => {
+                referralTable.innerHTML = ""; // Clear old data before appending new rows
+
+                if (snapshot.empty) {
+                    referralTable.innerHTML = `<tr><td colspan="4">No referrals yet</td></tr>`;
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const formattedDate = data.dateJoined ? new Date(data.dateJoined).toLocaleDateString() : "N/A";
+
+                    referralTable.innerHTML += `
+                        <tr>
+                            <td>${data.email || "N/A"}</td>
+                            <td>${data.status || "Pending"}</td>
+                            <td>${formattedDate}</td>
+                            <td>${data.bonusEarned || 0} USDT</td>
+                        </tr>
+                    `;
+                });
+            });
+        } catch (error) {
+            console.error("🚨 Error loading referral dashboard:", error);
+        }
     }
 
     // 🔥 Load referral dashboard after user logs in
-    const userId = "currentUser123"; // Replace with actual user ID
+    const userId = "currentUser123"; // Replace with actual user ID from authentication
     loadReferralDashboard(userId);
 
     // Change Password Logic
