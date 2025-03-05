@@ -1182,15 +1182,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function fetchReferralDetails(userId) {
-        if (!userId) {
-            console.warn("⚠️ No user ID provided for referral fetch.");
+    async function fetchReferralDetails(userEmail) {  // Accept userEmail instead of userId
+        if (!userEmail) {
+            console.warn("⚠️ No email provided for referral fetch.");
             return;
         }
 
         try {
-            console.log("🔍 Fetching referral details for", userId);
-            const response = await fetch(`https://www.aicontrib.com/api/user-referral?userId=${encodeURIComponent(userId)}`);
+            console.log("🔍 Fetching referral details for", userEmail);
+            const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`);
 
             // ✅ Log the full response
             const text = await response.text();
