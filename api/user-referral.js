@@ -4,6 +4,27 @@ import admin from "firebase-admin";
 const app = express();
 const db = admin.firestore();
 
+if (!admin.apps.length) {
+    try {
+        console.log("🔥 Initializing Firebase...");
+        const credentials = process.env.FIREBASE_CREDENTIALS;
+
+        if (!credentials) {
+            console.error("❌ FIREBASE_CREDENTIALS is missing!");
+            process.exit(1);
+        }
+
+        admin.initializeApp({
+            credential: admin.credential.cert(JSON.parse(credentials)),
+        });
+
+        console.log("✅ Firebase Initialized Successfully.");
+    } catch (error) {
+        console.error("❌ Error initializing Firebase:", error);
+        process.exit(1);
+    }
+}
+
 app.get("/api/user-referral", async (req, res) => {
     try {
         const userEmail = req.query.email;
