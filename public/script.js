@@ -1134,14 +1134,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Function to Load Referral Dashboard
-    async function loadReferralDashboard(userId) {
-        if (!userId) {
-            console.warn("⚠️ No user ID provided.");
+    async function loadReferralDashboard(userEmail) {
+        if (!userEmail) {
+            console.warn("⚠️ No email provided.");
             return;
         }
 
         try {
-            const userRef = db.collection("users").doc(userId);
+            const userRef = db.collection("users").doc(userEmail);
             const referralTable = document.querySelector("#referral-table tbody");
             const totalBonusElement = document.getElementById("total-referral-bonus");
             const referralCodeElement = document.getElementById("user-referral-code");
@@ -1182,7 +1182,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function fetchReferralDetails(userEmail) {  // Accept userEmail instead of userId
+    // ✅ Fetch Referral Details
+    async function fetchReferralDetails(userEmail) {
         if (!userEmail) {
             console.warn("⚠️ No email provided for referral fetch.");
             return;
@@ -1191,8 +1192,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             console.log("🔍 Fetching referral details for", userEmail);
             const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`);
-
-            // ✅ Log the full response
+            
             const text = await response.text();
             console.log("📄 Raw API Response:", text);
 
@@ -1200,7 +1200,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(`❌ API error: ${response.status} - ${text}`);
             }
 
-            const data = JSON.parse(text); // Convert to JSON only if the response is valid
+            const data = JSON.parse(text);
             console.log("✅ Referral details fetched:", data);
             return data;
         } catch (error) {
@@ -1208,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Function to Copy Referral Code
+    // ✅ Copy Referral Code
     function copyReferralCode() {
         const referralCodeElement = document.getElementById("user-referral-code");
         if (!referralCodeElement) {
@@ -1226,7 +1226,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Attach Event Listener for Copy Button
+    // ✅ Initialize Referral Dashboard
     document.addEventListener("DOMContentLoaded", () => {
         const copyButton = document.getElementById("copy-referral-code");
         if (copyButton) {
@@ -1237,10 +1237,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
+                const normalizedEmail = user.email.toLowerCase();
                 console.log("✅ Logged-in user:", normalizedEmail);
-
-                // ✅ Use email instead of UID if Firestore documents are stored by email
-                const normalizedEmail = user.email.toLowerCase(); // Normalize email to match Firestore format
 
                 loadReferralDashboard(normalizedEmail);
                 fetchReferralDetails(normalizedEmail);
