@@ -1190,23 +1190,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             console.log("🔍 Fetching referral details for:", userEmail);
-            
-            // ✅ Since emails are document IDs, fetch directly using the email
-            const userRef = db.collection("users").doc(userEmail);
-            const userDoc = await userRef.get();
 
-            if (!userDoc.exists) {
-                console.warn("⚠️ No user found with email:", userEmail);
-                return;
-            } else {
-                console.log("✅ Fetched user email from Firestore:", userDoc.data().email);
-            }
+            const authToken = await firebase.auth().currentUser.getIdToken(); // ✅ Get Firebase token
 
-            const userData = userDoc.data();
-            console.log("✅ User document found:", userData);
-
-            // ✅ Use email in the API request
-            const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`);
+            const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`, // ✅ Send token in request
+                },
+            });
 
             const text = await response.text();
             console.log("📄 Raw API Response:", text);
