@@ -2,12 +2,23 @@ import express from "express";
 import admin from "firebase-admin";
 
 const app = express();
+
+// ✅ Ensure Firebase is initialized only once
+if (!admin.apps.length) {
+    console.log("🔥 Initializing Firebase...");
+    admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_CREDENTIALS)),
+    });
+} else {
+    console.log("✅ Firebase already initialized.");
+}
+
 const db = admin.firestore();
 
 // ✅ API to Fetch User Referral Code
 app.get("/api/user-referral", async (req, res) => {
     try {
-        const userId = req.query.userId;  // Extract from query params
+        const userId = req.query.userId;  
         if (!userId) {
             console.warn("❌ Missing userId parameter.");
             return res.status(400).json({ error: "Missing userId parameter" });
@@ -33,3 +44,5 @@ app.get("/api/user-referral", async (req, res) => {
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 });
+
+export default app;
