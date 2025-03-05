@@ -18,20 +18,20 @@ const db = admin.firestore();
 // ✅ API to Fetch User Referral Code
 app.get("/api/user-referral", async (req, res) => {
     try {
-        const userId = req.query.userId;  
+        const userId = req.query.userId;  // Ensure correct query parameter
+        console.log("📌 Received Request with userId:", userId);
+
         if (!userId) {
             console.warn("❌ Missing userId parameter.");
             return res.status(400).json({ error: "Missing userId parameter" });
         }
-
-        console.log("🔍 Fetching referral code for:", userId);
 
         // ✅ Normalize user ID to lowercase (if using email as Firestore ID)
         const userDoc = await db.collection("users").doc(userId.toLowerCase()).get();
         
         if (!userDoc.exists) {
             console.warn("❌ User not found in Firestore:", userId);
-            return res.status(404).json({ error: "User not found in Firestore" });
+            return res.status(404).json({ error: `User with ID '${userId}' not found in Firestore` });
         }
 
         const userData = userDoc.data();
