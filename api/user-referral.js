@@ -44,8 +44,6 @@ export default async function handler(req, res) {
     }
 }
 
-const db = admin.firestore();
-
 app.get("/api/user-referral", async (req, res) => {
     try {
         const userEmail = req.query.email;
