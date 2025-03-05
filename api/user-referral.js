@@ -3,7 +3,7 @@ import admin from "firebase-admin";
 
 const app = express();
 
-// ✅ Ensure Firebase is initialized only once
+// ✅ Ensure Firebase is initialized
 if (!admin.apps.length) {
     console.log("🔥 Initializing Firebase...");
     admin.initializeApp({
@@ -15,23 +15,23 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ✅ API to Fetch User Referral Code
+// ✅ API to Fetch User Referral Code using Email
 app.get("/api/user-referral", async (req, res) => {
     try {
-        const userId = req.query.userId;  // Ensure correct query parameter
-        console.log("📌 Received Request with userId:", userId);
+        const userEmail = req.query.email;  // Expecting email instead of userId
+        console.log("📌 Received Request with email:", userEmail);
 
-        if (!userId) {
-            console.warn("❌ Missing userId parameter.");
-            return res.status(400).json({ error: "Missing userId parameter" });
+        if (!userEmail) {
+            console.warn("❌ Missing email parameter.");
+            return res.status(400).json({ error: "Missing email parameter" });
         }
 
-        // ✅ Normalize user ID to lowercase (if using email as Firestore ID)
-        const userDoc = await db.collection("users").doc(userId.toLowerCase()).get();
+        // ✅ Normalize email to lowercase
+        const userDoc = await db.collection("users").doc(userEmail.toLowerCase()).get();
         
         if (!userDoc.exists) {
-            console.warn("❌ User not found in Firestore:", userId);
-            return res.status(404).json({ error: `User with ID '${userId}' not found in Firestore` });
+            console.warn("❌ User not found in Firestore:", userEmail);
+            return res.status(404).json({ error: `User with email '${userEmail}' not found in Firestore` });
         }
 
         const userData = userDoc.data();
