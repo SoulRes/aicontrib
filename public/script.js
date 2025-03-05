@@ -1133,6 +1133,29 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
 
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            const token = await user.getIdToken();
+            console.log("👤 User ID:", user.uid);
+            console.log("📧 User Email:", user.email);
+            console.log("🔑 Auth Token:", token);
+
+            // Make API request with correct token
+            fetch('/api/user-referral', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => console.log("✅ API Response:", data))
+            .catch(error => console.error("❌ API Error:", error));
+        } else {
+            console.error("🚨 No authenticated user found.");
+        }
+    });
+
     // ✅ Function to Load Referral Dashboard
     async function loadReferralDashboard(userEmail) {
         if (!userEmail) {

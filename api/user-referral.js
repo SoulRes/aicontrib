@@ -4,23 +4,43 @@ import admin from "firebase-admin";
 const app = express();
 
 if (!admin.apps.length) {
-    try {
-        console.log("🔥 Initializing Firebase...");
-        const credentials = process.env.FIREBASE_CREDENTIALS;
+    admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }),
+    });
+}
 
-        if (!credentials) {
-            console.error("❌ FIREBASE_CREDENTIALS is missing!");
-            process.exit(1);
+export default async function handler(req, res) {
+    try {
+        if (!req.headers.authorization) {
+            return res.status(403).json({ error: "Unauthorized: No token provided" });
         }
 
-        admin.initializeApp({
-            credential: admin.credential.cert(JSON.parse(credentials)),
-        });
+        const token = req.headers.authorization.split("Bearer ")[1];
+        const decodedToken = await admin.auth().verifyIdToken(token);
 
-        console.log("✅ Firebase Initialized Successfully.");
+        if (!decodedToken.email) {
+            return res.status(400).json({ error: "Invalid token: No email found" });
+        }
+
+        console.log("✅ Authenticated User:", decodedToken.email);
+
+        // Fetch user referral info from Firestore
+        const db = admin.firestore();
+        const userRef = db.collection("users").doc(decodedToken.email);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: "User referral not found" });
+        }
+
+        res.status(200).json({ referral: userDoc.data().referralCode });
     } catch (error) {
-        console.error("❌ Error initializing Firebase:", error);
-        process.exit(1);
+        console.error("❌ Token verification failed:", error);
+        res.status(403).json({ error: "Unauthorized: Invalid token" });
     }
 }
 
