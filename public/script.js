@@ -1182,34 +1182,28 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function fetchReferralDetails(userId) {
-        if (!userId) {
-            console.warn("⚠️ No user ID provided for referral fetch.");
+    async function fetchReferralDetails(userEmail) {
+        if (!userEmail) {
+            console.warn("⚠️ No user email provided for referral fetch.");
             return;
         }
 
         try {
-            console.log("🔍 Looking up email for UID:", userId);
+            console.log("🔍 Fetching referral details for:", userEmail);
             
-            // ✅ First, find the user's email using their UID
-            const userRef = db.collection("users").doc(userId);
+            // ✅ Since emails are document IDs, fetch directly using the email
+            const userRef = db.collection("users").doc(userEmail);
             const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
-                console.warn("⚠️ No user found with UID:", userId);
+                console.warn("⚠️ No user found with email:", userEmail);
                 return;
             }
 
-            const userEmail = userDoc.data().email;
-            if (!userEmail) {
-                console.error("❌ User email not found in Firestore document!");
-                return;
-            }
+            const userData = userDoc.data();
+            console.log("✅ User document found:", userData);
 
-            console.log("✅ Found user email:", userEmail);
-
-            // ✅ Now fetch referral details using email
-            console.log("🔍 Fetching referral details for", userEmail);
+            // ✅ Use email in the API request
             const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`);
 
             const text = await response.text();
