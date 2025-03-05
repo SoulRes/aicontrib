@@ -1198,6 +1198,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!userDoc.exists) {
                 console.warn("⚠️ No user found with email:", userEmail);
                 return;
+            } else {
+                console.log("✅ Fetched user email from Firestore:", userDoc.data().email);
             }
 
             const userData = userDoc.data();

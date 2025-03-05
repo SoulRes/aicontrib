@@ -5,12 +5,24 @@ const app = express();
 
 // ✅ Ensure Firebase is initialized
 if (!admin.apps.length) {
-    console.log("🔥 Initializing Firebase...");
-    admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_CREDENTIALS)),
-    });
-} else {
-    console.log("✅ Firebase already initialized.");
+    try {
+        console.log("🔥 Initializing Firebase...");
+        const credentials = process.env.FIREBASE_CREDENTIALS;
+
+        if (!credentials) {
+            console.error("❌ FIREBASE_CREDENTIALS is missing!");
+            process.exit(1);
+        }
+
+        admin.initializeApp({
+            credential: admin.credential.cert(JSON.parse(credentials)),
+        });
+
+        console.log("✅ Firebase Initialized Successfully.");
+    } catch (error) {
+        console.error("❌ Error initializing Firebase:", error);
+        process.exit(1);
+    }
 }
 
 const db = admin.firestore();
