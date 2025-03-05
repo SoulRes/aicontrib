@@ -2,7 +2,6 @@ import express from "express";
 import admin from "firebase-admin";
 
 const app = express();
-const db = admin.firestore();
 
 if (!admin.apps.length) {
     try {
@@ -24,6 +23,8 @@ if (!admin.apps.length) {
         process.exit(1);
     }
 }
+
+const db = admin.firestore();
 
 app.get("/api/user-referral", async (req, res) => {
     try {
