@@ -1237,7 +1237,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
-                console.log("✅ Logged-in user:", user.email);
+                console.log("✅ Logged-in user:", normalizedEmail);
 
                 // ✅ Use email instead of UID if Firestore documents are stored by email
                 const normalizedEmail = user.email.toLowerCase(); // Normalize email to match Firestore format
