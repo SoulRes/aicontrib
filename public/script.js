@@ -1182,19 +1182,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Function to Fetch Referral Details
     async function fetchReferralDetails(userId) {
         if (!userId) {
             console.warn("⚠️ No user ID provided for referral fetch.");
             return;
         }
-        
+
         try {
             console.log("🔍 Fetching referral details for", userId);
             const response = await fetch(`https://www.aicontrib.com/api/user-referral?userId=${encodeURIComponent(userId)}`);
-            
-            if (!response.ok) throw new Error(`❌ API error: ${response.status}`);
-            const data = await response.json();
+
+            // ✅ Log the full response
+            const text = await response.text();
+            console.log("📄 Raw API Response:", text);
+
+            if (!response.ok) {
+                throw new Error(`❌ API error: ${response.status} - ${text}`);
+            }
+
+            const data = JSON.parse(text); // Convert to JSON only if the response is valid
             console.log("✅ Referral details fetched:", data);
             return data;
         } catch (error) {
