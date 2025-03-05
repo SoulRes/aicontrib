@@ -1,63 +1,67 @@
-import admin from 'firebase-admin';
+import express from "express";
+import admin from "firebase-admin";
 
-// Ensure Firebase Admin is initialized only once (prevents duplicate initialization issues)
+const app = express();
+
 if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY,
-        }),
-    });
+    try {
+        console.log("🔥 Initializing Firebase...");
+        const credentials = process.env.FIREBASE_CREDENTIALS;
+
+        if (!credentials) {
+            console.error("❌ FIREBASE_CREDENTIALS is missing!");
+            process.exit(1);
+        }
+
+        admin.initializeApp({
+            credential: admin.credential.cert(JSON.parse(credentials)),
+        });
+
+        console.log("✅ Firebase Initialized Successfully.");
+    } catch (error) {
+        console.error("❌ Error initializing Firebase:", error);
+        process.exit(1);
+    }
 }
 
 const db = admin.firestore();
 
-export default async function handler(req, res) {
+app.get("/api/user-referral", async (req, res) => {
     try {
-        if (req.method !== 'GET') {
-            return res.status(405).json({ error: 'Method Not Allowed' });
+        const userEmail = req.query.email;
+        console.log("📌 Received Request with email:", userEmail);
+
+        if (!userEmail) {
+            return res.status(400).json({ error: "Missing email parameter" });
         }
 
-        // ✅ Step 1: Validate Authorization Header
-        if (!req.headers.authorization) {
+        // ✅ Normalize email to lowercase
+        const normalizedEmail = userEmail.toLowerCase();
+
+        // ✅ Check Firebase Auth
+        const authToken = req.headers.authorization?.split("Bearer ")[1];
+        if (!authToken) {
             return res.status(403).json({ error: "Unauthorized: No token provided" });
         }
 
-        const token = req.headers.authorization.split("Bearer ")[1];
-        if (!token) {
-            return res.status(403).json({ error: "Unauthorized: Token is missing" });
+        const decodedToken = await admin.auth().verifyIdToken(authToken);
+        if (!decodedToken.email || decodedToken.email !== normalizedEmail) {
+            return res.status(403).json({ error: "Unauthorized: Invalid token" });
         }
 
-        // ✅ Step 2: Verify Firebase Auth Token
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        if (!decodedToken.email) {
-            return res.status(400).json({ error: "Invalid token: No email found" });
-        }
-
-        console.log("✅ Authenticated User:", decodedToken.email);
-
-        // ✅ Step 3: Fetch User Referral Data from Firestore
-        const userRef = db.collection("users").doc(decodedToken.email);
-        const userDoc = await userRef.get();
-
+        // ✅ Fetch User Data
+        const userDoc = await db.collection("users").doc(normalizedEmail).get();
         if (!userDoc.exists) {
-            return res.status(404).json({ error: "User referral not found" });
+            return res.status(404).json({ error: `User with email '${normalizedEmail}' not found in Firestore` });
         }
 
         const userData = userDoc.data();
-        console.log("📌 User Data:", userData);
-
-        return res.status(200).json({
-            email: decodedToken.email,
-            referralCode: userData.referralCode || null,
-            referredBy: userData.referredBy || null,
-            referralCount: userData.referralCount || 0,
-        });
+        return res.json({ referralCode: userData.referralCode });
 
     } catch (error) {
-        console.error("❌ Error in user-referral API:", error);
+        console.error("🚨 Error fetching user referral code:", error);
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
-}
+});
 
+export default app;
