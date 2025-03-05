@@ -1235,19 +1235,20 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ Initialize Referral Dashboard
     document.addEventListener("DOMContentLoaded", () => {
         const copyButton = document.getElementById("copy-referral-code");
-        if (copyButton) {
-            copyButton.addEventListener("click", copyReferralCode);
-        } else {
+        if (!copyButton) {
             console.warn("⚠️ Copy button not found!");
+            return;
         }
+
+        copyButton.addEventListener("click", copyReferralCode);
 
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 const normalizedEmail = user.email.toLowerCase();
                 console.log("✅ Logged-in user:", normalizedEmail);
 
-                loadReferralDashboard(normalizedEmail);
-                fetchReferralDetails(normalizedEmail);
+                await loadReferralDashboard(normalizedEmail);  // ✅ Ensure async execution
+                await fetchReferralDetails(normalizedEmail);
             } else {
                 console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
             }
