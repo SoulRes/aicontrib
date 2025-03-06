@@ -1213,24 +1213,21 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             console.log("🔍 Fetching referral details for:", userEmail);
 
-            const authToken = await firebase.auth().currentUser.getIdToken(); // ✅ Get Firebase token
-
-            const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
-                headers: {
-                    Authorization: `Bearer ${authToken}`, // ✅ Send token in request
-                },
+            const authToken = await firebase.auth().currentUser.getIdToken();
+            const response = await fetch(`/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
+                headers: { Authorization: `Bearer ${authToken}` },
             });
 
-            const text = await response.text();
-            console.log("📄 Raw API Response:", text);
+            const data = await response.json();
+            console.log("✅ API Response:", data);
 
-            if (!response.ok) {
-                throw new Error(`❌ API error: ${response.status} - ${text}`);
+            if (data.error) {
+                throw new Error(`❌ API error: ${JSON.stringify(data)}`);
             }
 
-            const data = JSON.parse(text);
-            console.log("✅ Referral details fetched:", data);
-            return data;
+            // ✅ Update Referral Code on Dashboard
+            document.getElementById("user-referral-code").textContent = data.referralCode || "N/A";
+
         } catch (error) {
             console.error("🚨 Error fetching user referral code:", error);
         }
