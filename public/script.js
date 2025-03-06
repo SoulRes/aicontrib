@@ -944,7 +944,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const usdtToReceive = (tmcToExchange * exchangeRate).toFixed(2);
 
             // Update Firestore with the new TMC and USDT balances
-            const userDocRef = db.collection("users").doc(auth.currentUser.email.toLowerCase().trim());
+            const userDocRef = db.collection("users").doc(userEmail);
 
             // Perform the balance update in a transaction to ensure atomicity
             db.runTransaction((transaction) => {
