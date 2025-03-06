@@ -1,7 +1,7 @@
-import { doc, collection, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+// referral.js
 
-// ✅ Load Referral Dashboard
-export async function loadReferralDashboard(userEmail, db) {
+// ✅ Function to load the referral dashboard
+async function loadReferralDashboard(userEmail) {
     if (!userEmail) {
         console.warn("⚠️ No email provided. Skipping dashboard update.");
         return;
@@ -23,7 +23,7 @@ export async function loadReferralDashboard(userEmail, db) {
             return;
         }
 
-        // ✅ Listen for changes in user data
+        // ✅ Listen for changes in user data (e.g., referral code, total bonus)
         onSnapshot(userRef, (docSnap) => {
             if (!docSnap.exists()) {
                 console.warn(`⚠️ No Firestore document found for user: ${userEmail}`);
@@ -51,7 +51,7 @@ export async function loadReferralDashboard(userEmail, db) {
             }
 
             snapshot.forEach(async (referralDoc) => {
-                console.log("🔍 Referral Doc:", referralDoc.data());
+                console.log("🔍 Referral Doc:", referralDoc.data()); // Check if data is loading
 
                 const referralData = referralDoc.data();
                 const referralUser = referralDoc.id;
@@ -80,8 +80,8 @@ export async function loadReferralDashboard(userEmail, db) {
     }
 }
 
-// ✅ Fetch Referral Details from API
-export async function fetchReferralDetails(userEmail) {
+// ✅ Function to fetch referral details from API
+async function fetchReferralDetails(userEmail) {
     if (!userEmail) {
         console.warn("⚠️ No user email provided for referral fetch.");
         return;
@@ -111,7 +111,7 @@ export async function fetchReferralDetails(userEmail) {
 }
 
 // ✅ Copy Referral Code
-export function copyReferralCode() {
+function copyReferralCode() {
     const referralCodeElement = document.getElementById("user-referral-code");
     if (!referralCodeElement) {
         console.error("❌ Referral code element not found!");

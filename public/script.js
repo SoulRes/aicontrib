@@ -1133,36 +1133,21 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
 
-    import { loadReferralDashboard, fetchReferralDetails, copyReferralCode } from "./referrals.js";
-
     // ✅ Initialize Referral Dashboard
     firebase.auth().onAuthStateChanged(async (user) => {
-        if (!user) {
-            console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
-            return;
-        }
-
-        const normalizedEmail = user.email.toLowerCase();
-        console.log("✅ Logged-in user:", normalizedEmail);
-
-        console.log("🚀 Page fully loaded, waiting for authentication...");
-
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (!user) {
-                console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
-                return;
-            }
-
-            const normalizedEmail = user.email.toLowerCase();
-            console.log("✅ Logged-in user:", normalizedEmail);
+        if (user) {
+            const token = await user.getIdToken();
+            console.log("👤 User ID:", user.email);
+            console.log("📧 User Email:", user.email);
+            console.log("🔑 Auth Token:", token);
 
             // ✅ Fetch and load referral dashboard
-            await loadReferralDashboard(normalizedEmail, db);
-            await fetchReferralDetails(normalizedEmail);
-        });
-
-        // ✅ Attach event listener for copying referral code
-        document.getElementById("copy-referral-btn")?.addEventListener("click", copyReferralCode);
+            const normalizedEmail = user.email.toLowerCase();
+            loadReferralDashboard(normalizedEmail);
+            fetchReferralDetails(normalizedEmail);
+        } else {
+            console.error("🚨 No authenticated user found.");
+        }
     });
 
     // Change Password Logic
