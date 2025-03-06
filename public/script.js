@@ -1217,6 +1217,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }).catch((error) => {
                 console.error("🚨 Error fetching referrals:", error);
             });
+
+        } catch (error) {
+            console.error("🚨 Error loading referral dashboard:", error);
         }
     }
 
