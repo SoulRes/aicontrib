@@ -1179,13 +1179,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             // ✅ Listen for changes in user data (e.g., referral code, total bonus)
-            onSnapshot(userRef, (doc) => {
-                if (!doc.exists()) {
+            onSnapshot(userRef, (docSnap) => {
+                if (!docSnap.exists()) {
                     console.warn(`⚠️ No Firestore document found for user: ${userEmail}`);
                     return;
                 }
 
-                const userData = doc.data();
+                const userData = docSnap.data();
                 console.log("✅ User Data Loaded:", userData);
 
                 // 🔄 Update UI
@@ -1193,44 +1193,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 totalBonusElement.textContent = `${userData.usdt || 0} USDT`;
             });
 
-            // ✅ Fetch detailed referral info from nested structure
-            const referralSnapshots = await getDocs(referralsRef);
-            referralTable.innerHTML = "";
+            // ✅ Listen for real-time referral updates
+            onSnapshot(referralsRef, (snapshot) => {
+                console.log(`📌 Received ${snapshot.size} referral entries`);
 
-            if (referralSnapshots.empty) {
-                console.warn("⚠️ No referrals found for user:", userEmail);
-                referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
-                return;
-            }
+                referralTable.innerHTML = ""; // ✅ Clear table before adding new data
 
-            referralSnapshots.forEach(async (referralDoc) => {
-                const referralUser = referralDoc.id;
-                const infoRef = doc(db, `users/${userEmail}/referrals/${referralUser}/info`);
+                if (snapshot.empty) {
+                    console.warn("⚠️ No referrals found for user:", userEmail);
+                    referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
+                    return;
+                }
 
-                onSnapshot(infoRef, (infoDoc) => {
-                    if (!infoDoc.exists()) {
-                        console.warn(`⚠️ No detailed info found for referral: ${referralUser}`);
-                        return;
+                snapshot.forEach(async (referralDoc) => {
+                    const referralData = referralDoc.data();
+                    const referralUser = referralDoc.id; // Referral user's ID
+                    const infoRef = doc(db, "users", userEmail.toLowerCase(), "referrals", referralUser, "info");
+                    const infoSnap = await getDoc(infoRef);
+
+                    let referralInfo = {};
+                    if (infoSnap.exists()) {
+                        referralInfo = infoSnap.data();
+                        console.log("🔹 Referral Info Loaded:", referralInfo);
+                    } else {
+                        console.warn(`⚠️ No 'info' found for referral: ${referralUser}`);
                     }
-                    const data = infoDoc.data();
-                    console.log("🔹 Referral Info Loaded:", data);
 
-                    const formattedDate = data.dateJoined ? new Date(data.dateJoined).toLocaleDateString() : "N/A";
+                    const formattedDate = referralData.dateJoined ? new Date(referralData.dateJoined).toLocaleDateString() : "N/A";
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                        <td>${data.email || "N/A"}</td>
-                        <td>${data.status || "Pending"}</td>
+                        <td>${referralData.email || "N/A"}</td>
+                        <td>${referralData.status || "Pending"}</td>
                         <td>${formattedDate}</td>
-                        <td>${data.bonusEarned || 0} USDT</td>
+                        <td>${referralData.bonusEarned || 0} USDT</td>
                     `;
                     referralTable.appendChild(row);
                 });
+            }, (error) => {
+                console.error("🚨 Error fetching referrals:", error);
             });
 
         } catch (error) {
             console.error("🚨 Error loading referral dashboard:", error);
         }
-    } 
+    }
 
     async function fetchReferralDetails(userEmail) {
         if (!userEmail) {
