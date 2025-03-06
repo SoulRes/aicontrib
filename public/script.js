@@ -1166,6 +1166,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("📡 Initializing referral dashboard for:", userEmail);
 
             const userRef = db.collection("users").doc(userEmail.toLowerCase());
+            const referralsRef = userRef.collection("referrals"); // ✅ Subcollection reference
 
             // ✅ Get required UI elements
             const referralTable = document.querySelector("#referral-table tbody");
@@ -1177,7 +1178,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // ✅ Listen for changes in user data (e.g., total bonus, referral code)
+            // ✅ Listen for changes in user data (e.g., referral code, total bonus)
             userRef.onSnapshot((doc) => {
                 if (!doc.exists) {
                     console.warn(`⚠️ No Firestore document found for user: ${userEmail}`);
@@ -1193,7 +1194,11 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             // ✅ Listen for real-time referral updates
-            userRef.collection("referrals").get().then((snapshot) => {
+            referralsRef.onSnapshot((snapshot) => {
+                console.log(`📌 Received ${snapshot.size} referral entries`);
+
+                referralTable.innerHTML = ""; // ✅ Clear table before adding new data
+
                 if (snapshot.empty) {
                     console.warn("⚠️ No referrals found for user:", userEmail);
                     referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
@@ -1214,7 +1219,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     `;
                     referralTable.appendChild(row);
                 });
-            }).catch((error) => {
+            }, (error) => {
                 console.error("🚨 Error fetching referrals:", error);
             });
 
