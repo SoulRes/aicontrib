@@ -1272,25 +1272,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Initialize Referral Dashboard
-    document.addEventListener("DOMContentLoaded", () => {
-        const copyButton = document.getElementById("copy-referral-code");
-        if (!copyButton) {
-            console.warn("⚠️ Copy button not found!");
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (!user) {
+            console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
             return;
         }
 
-        copyButton.addEventListener("click", copyReferralCode);
+        const normalizedEmail = user.email.toLowerCase();
+        console.log("✅ Logged-in user:", normalizedEmail);
 
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-                const normalizedEmail = user.email.toLowerCase();
-                console.log("✅ Logged-in user:", normalizedEmail);
+        // ✅ Ensure the page is fully loaded before accessing the DOM
+        document.addEventListener("DOMContentLoaded", async () => {
+            console.log("🚀 Page fully loaded, initializing referral dashboard...");
 
-                await loadReferralDashboard(normalizedEmail);  // ✅ Ensure async execution
-                await fetchReferralDetails(normalizedEmail);
+            const copyButton = document.getElementById("copy-referral-code");
+            if (copyButton) {
+                copyButton.addEventListener("click", copyReferralCode);
             } else {
-                console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
+                console.warn("⚠️ Copy button not found!");
             }
+
+            await loadReferralDashboard(normalizedEmail);  // ✅ Ensure async execution
+            await fetchReferralDetails(normalizedEmail);
         });
     });
 
