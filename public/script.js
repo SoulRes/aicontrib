@@ -59,24 +59,6 @@ function openForm(formType) {
     }
 }
 
- document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🚀 Page fully loaded, waiting for authentication...");
-
-    firebase.auth().onAuthStateChanged(async (user) => {
-        if (!user) {
-            console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
-            return;
-        }
-
-        const normalizedEmail = user.email.toLowerCase();
-        console.log("✅ Logged-in user:", normalizedEmail);
-
-        // ✅ Fetch and load referral dashboard
-        await loadReferralDashboard(normalizedEmail);
-        await fetchReferralDetails(normalizedEmail);
-    });
-});
-
 document.addEventListener("DOMContentLoaded", function () {
     // Firebase Configuration
     const firebaseConfig = {
@@ -1298,6 +1280,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const normalizedEmail = user.email.toLowerCase();
         console.log("✅ Logged-in user:", normalizedEmail);
+
+        console.log("🚀 Page fully loaded, waiting for authentication...");
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
+                return;
+            }
+
+            const normalizedEmail = user.email.toLowerCase();
+            console.log("✅ Logged-in user:", normalizedEmail);
+
+            // ✅ Fetch and load referral dashboard
+            await loadReferralDashboard(normalizedEmail);
+            await fetchReferralDetails(normalizedEmail);
+        });
+    });
 
     // Change Password Logic
     const changePasswordLink = document.getElementById('change-password-link');
