@@ -1,3 +1,4 @@
+import { doc, collection, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 // Function to switch between sections (make it globally available)
 function switchSection(sectionId) {
     const sections = document.querySelectorAll('.content-section');
@@ -1197,7 +1198,7 @@ document.addEventListener("DOMContentLoaded", function () {
             onSnapshot(referralsRef, (snapshot) => {
                 console.log(`📌 Received ${snapshot.size} referral entries`);
 
-                referralTable.innerHTML = ""; // ✅ Clear table before adding new data
+                referralTable.innerHTML = ""; // Clear table before adding new data
 
                 if (snapshot.empty) {
                     console.warn("⚠️ No referrals found for user:", userEmail);
@@ -1206,16 +1207,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 snapshot.forEach(async (referralDoc) => {
+                    console.log("🔍 Referral Doc:", referralDoc.data()); // Check if data is loading
+
                     const referralData = referralDoc.data();
-                    const referralUser = referralDoc.id; // Referral user's ID
+                    const referralUser = referralDoc.id;
                     const infoRef = doc(db, "users", userEmail.toLowerCase(), "referrals", referralUser, "info");
                     const infoSnap = await getDoc(infoRef);
 
-                    let referralInfo = {};
-                    if (infoSnap.exists()) {
-                        referralInfo = infoSnap.data();
-                        console.log("🔹 Referral Info Loaded:", referralInfo);
-                    } else {
+                    if (!infoSnap.exists()) {
                         console.warn(`⚠️ No 'info' found for referral: ${referralUser}`);
                     }
 
@@ -1232,7 +1231,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }, (error) => {
                 console.error("🚨 Error fetching referrals:", error);
             });
-
         } catch (error) {
             console.error("🚨 Error loading referral dashboard:", error);
         }
