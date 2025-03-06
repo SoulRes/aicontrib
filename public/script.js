@@ -1194,9 +1194,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // ✅ Listen for real-time referral updates
             userRef.collection("referrals").onSnapshot((snapshot) => {
-                console.log(`📌 Received ${snapshot.size} referral entries`);
+                if (!snapshot) {
+                    console.error("🚨 Firestore returned null for referrals!");
+                    return;
+                }
 
-                referralTable.innerHTML = ""; // ✅ Clear table before adding new data
+                console.log(`📌 Received ${snapshot.size} referral entries`);
+                referralTable.innerHTML = ""; // ✅ Clear table
 
                 if (snapshot.empty) {
                     referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
