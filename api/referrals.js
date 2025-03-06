@@ -1,5 +1,3 @@
-// referral.js
-
 // ✅ Function to load the referral dashboard
 async function loadReferralDashboard(userEmail) {
     if (!userEmail) {
