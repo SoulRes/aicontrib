@@ -1129,15 +1129,16 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ Initialize Referral Dashboard
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
-            const token = await user.getIdToken();
-            console.log("👤 User ID:", user.email);
-            console.log("📧 User Email:", user.email);
-            console.log("🔑 Auth Token:", token);
-
-            // ✅ Fetch and load referral dashboard
             const normalizedEmail = user.email.toLowerCase();
-            loadReferralDashboard(normalizedEmail);
-            fetchReferralDetails(normalizedEmail);
+            console.log("👤 User ID:", user.email);
+
+            // ✅ Ensure `referral.js` functions are available
+            if (typeof loadReferralDashboard === "function") {
+                loadReferralDashboard(normalizedEmail);
+                fetchReferralDetails(normalizedEmail);
+            } else {
+                console.error("🚨 Referral functions not found. Ensure `referral.js` is loaded first.");
+            }
         } else {
             console.error("🚨 No authenticated user found.");
         }
