@@ -1205,34 +1205,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function fetchReferralDetails() {
+    async function fetchReferralDetails(userEmail) {
+        if (!userEmail) {
+            console.warn("⚠️ No user email provided for referral fetch.");
+            return;
+        }
+
         try {
-            const user = firebase.auth().currentUser;
-            if (!user) {
-                console.error("🚨 No authenticated user found!");
-                return;
-            }
+            console.log("🔍 Fetching referral details for:", userEmail);
 
-            const token = await user.getIdToken();
-            console.log("🔑 Auth Token:", token);
+            const authToken = await firebase.auth().currentUser.getIdToken(); // ✅ Get Firebase token
 
-            const response = await fetch('/api/user-referral', {
-                method: 'GET',
+            const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                    Authorization: `Bearer ${authToken}`, // ✅ Send token in request
+                },
             });
 
-            const data = await response.json();
-            console.log("✅ API Response:", data);
+            const text = await response.text();
+            console.log("📄 Raw API Response:", text);
 
-            if (data.error) {
-                throw new Error(`❌ API error: ${response.status} - ${JSON.stringify(data)}`);
+            if (!response.ok) {
+                throw new Error(`❌ API error: ${response.status} - ${text}`);
             }
 
-            document.getElementById("referralCode").innerText = data.referralCode || "N/A";
-
+            const data = JSON.parse(text);
+            console.log("✅ Referral details fetched:", data);
+            return data;
         } catch (error) {
             console.error("🚨 Error fetching user referral code:", error);
         }
@@ -1255,6 +1254,29 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("⚠️ No referral code available to copy.");
         }
     }
+
+    // ✅ Initialize Referral Dashboard
+    document.addEventListener("DOMContentLoaded", () => {
+        const copyButton = document.getElementById("copy-referral-code");
+        if (!copyButton) {
+            console.warn("⚠️ Copy button not found!");
+            return;
+        }
+
+        copyButton.addEventListener("click", copyReferralCode);
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                const normalizedEmail = user.email.toLowerCase();
+                console.log("✅ Logged-in user:", normalizedEmail);
+
+                await loadReferralDashboard(normalizedEmail);  // ✅ Ensure async execution
+                await fetchReferralDetails(normalizedEmail);
+            } else {
+                console.warn("⚠️ User not logged in. Unable to load referral dashboard.");
+            }
+        });
+    });
 
     // Change Password Logic
     const changePasswordLink = document.getElementById('change-password-link');
