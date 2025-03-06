@@ -1133,6 +1133,8 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
 
+    import { loadReferralDashboard, fetchReferralDetails, copyReferralCode } from "./referrals.js";
+
     // ✅ Initialize Referral Dashboard
     firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
