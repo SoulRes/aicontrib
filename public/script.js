@@ -825,13 +825,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Firebase Authentication - Fetch balances and exchange rate when user is logged in
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            const userEmail = user.email.toLowerCase().trim(); // Normalize email to lowercase
-            
-            // Fetch TMC and USDT balances from Firestore in real-time
-            const userDocRef = db.collection("users").doc(userEmail);
-
             // Listen to real-time updates for the user’s document
             userDocRef.onSnapshot((doc) => {
                 if (doc.exists) {
@@ -944,7 +937,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const usdtToReceive = (tmcToExchange * exchangeRate).toFixed(2);
 
             // Update Firestore with the new TMC and USDT balances
-            const userDocRef = db.collection("users").doc(auth.currentUser.email.toLowerCase().trim());
+            const userDocRef = db.collection("users").doc(userEmail);
 
             // Perform the balance update in a transaction to ensure atomicity
             db.runTransaction((transaction) => {
