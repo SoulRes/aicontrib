@@ -429,7 +429,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Call the function with the current user's ID
     auth.onAuthStateChanged((user) => {
         if (user) {
-            fetchReferralDetails(user.uid);
+            fetchReferralDetails(user.email);
         }
     });
 
@@ -1136,7 +1136,7 @@ document.addEventListener("DOMContentLoaded", function () {
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             const token = await user.getIdToken();
-            console.log("👤 User ID:", user.uid);
+            console.log("👤 User ID:", user.email);
             console.log("📧 User Email:", user.email);
             console.log("🔑 Auth Token:", token);
 
