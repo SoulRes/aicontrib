@@ -1193,16 +1193,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             // ✅ Listen for real-time referral updates
-            userRef.collection("referrals").onSnapshot((snapshot) => {
-                if (!snapshot) {
-                    console.error("🚨 Firestore returned null for referrals!");
-                    return;
-                }
-
-                console.log(`📌 Received ${snapshot.size} referral entries`);
-                referralTable.innerHTML = ""; // ✅ Clear table
-
+            userRef.collection("referrals").get().then((snapshot) => {
                 if (snapshot.empty) {
+                    console.warn("⚠️ No referrals found for user:", userEmail);
                     referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
                     return;
                 }
@@ -1221,10 +1214,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     `;
                     referralTable.appendChild(row);
                 });
+            }).catch((error) => {
+                console.error("🚨 Error fetching referrals:", error);
             });
-
-        } catch (error) {
-            console.error("🚨 Error loading referral dashboard:", error);
         }
     }
 
