@@ -1156,7 +1156,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ Function to Load Referral Dashboard
     async function loadReferralDashboard(userEmail) {
         if (!userEmail) {
             console.warn("⚠️ No email provided.");
@@ -1164,41 +1163,61 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            const referralTable = document.querySelector("#referral-table tbody") || null;
-            const totalBonusElement = document.getElementById("total-referral-bonus") || null;
-            const referralCodeElement = document.getElementById("user-referral-code") || null;
+            console.log("📡 Initializing referral dashboard for:", userEmail);
+
+            const userRef = db.collection("users").doc(userEmail.toLowerCase()); // Ensure lowercase match
+
+            // ✅ Get required UI elements
+            const referralTable = document.querySelector("#referral-table tbody");
+            const totalBonusElement = document.getElementById("total-referral-bonus");
+            const referralCodeElement = document.getElementById("user-referral-code");
 
             if (!referralTable || !totalBonusElement || !referralCodeElement) {
                 console.error("❌ Referral dashboard elements not found. Skipping UI updates.");
                 return;
             }
 
-            console.log("📡 Listening for referral data...");
-
-            // ✅ Listen for user referral data updates
+            // ✅ Listen for changes in user data (e.g., total bonus, referral code)
             userRef.onSnapshot((doc) => {
                 if (!doc.exists) {
-                    console.warn("⚠️ User data not found!");
+                    console.warn(`⚠️ No Firestore document found for user: ${userEmail}`);
                     return;
                 }
+
                 const userData = doc.data();
+                console.log("✅ User Data Loaded:", userData);
+
                 referralCodeElement.textContent = userData.referralCode || "N/A";
                 totalBonusElement.textContent = `${userData.usdt || 0} USDT`;
             });
 
             // ✅ Listen for real-time referral updates
             userRef.collection("referrals").onSnapshot((snapshot) => {
-                referralTable.innerHTML = snapshot.empty ? `<tr><td colspan='4'>No referrals yet</td></tr>` : "";
-                
+                console.log(`📌 Received ${snapshot.size} referral entries`);
+
+                referralTable.innerHTML = ""; // ✅ Clear table before adding new data
+
+                if (snapshot.empty) {
+                    referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
+                    return;
+                }
+
                 snapshot.forEach((doc) => {
-                    const { email = "N/A", status = "Pending", dateJoined, bonusEarned = 0 } = doc.data();
-                    const formattedDate = dateJoined ? new Date(dateJoined).toLocaleDateString() : "N/A";
-                    
+                    const data = doc.data();
+                    console.log("🔹 Referral Entry:", data);
+
+                    const formattedDate = data.dateJoined ? new Date(data.dateJoined).toLocaleDateString() : "N/A";
                     const row = document.createElement("tr");
-                    row.innerHTML = `<td>${email}</td><td>${status}</td><td>${formattedDate}</td><td>${bonusEarned} USDT</td>`;
+                    row.innerHTML = `
+                        <td>${data.email || "N/A"}</td>
+                        <td>${data.status || "Pending"}</td>
+                        <td>${formattedDate}</td>
+                        <td>${data.bonusEarned || 0} USDT</td>
+                    `;
                     referralTable.appendChild(row);
                 });
             });
+
         } catch (error) {
             console.error("🚨 Error loading referral dashboard:", error);
         }
