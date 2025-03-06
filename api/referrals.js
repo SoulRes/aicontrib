@@ -1,27 +1,7 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, collection, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, collection, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// ✅ Replace with your Firebase project config
-const firebaseConfig = {
-    apiKey: "AIzaSyDj2fDwpstFATN1GqzKdEvNqSe3u8EnNNM",
-    authDomain: "aicontribution.firebaseapp.com",
-    databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "aicontribution",
-    storageBucket: "aicontribution.appspot.com",
-    messagingSenderId: "847220817804",
-    appId: "1:847220817804:web:85e0307421f1ad87e4e0a9",
-    measurementId: "G-X9ZVDJLF8W"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/**
- * Function to load the referral dashboard
- * @param {string} userEmail - The email of the user
- */
-async function loadReferralDashboard(userEmail) {
+// ✅ Load Referral Dashboard
+export async function loadReferralDashboard(userEmail, db) {
     if (!userEmail) {
         console.warn("⚠️ No email provided. Skipping dashboard update.");
         return;
@@ -43,7 +23,7 @@ async function loadReferralDashboard(userEmail) {
             return;
         }
 
-        // ✅ Listen for changes in user data (e.g., referral code, total bonus)
+        // ✅ Listen for changes in user data
         onSnapshot(userRef, (docSnap) => {
             if (!docSnap.exists()) {
                 console.warn(`⚠️ No Firestore document found for user: ${userEmail}`);
@@ -62,7 +42,7 @@ async function loadReferralDashboard(userEmail) {
         onSnapshot(referralsRef, (snapshot) => {
             console.log(`📌 Received ${snapshot.size} referral entries`);
 
-            referralTable.innerHTML = ""; // ✅ Clear table before adding new data
+            referralTable.innerHTML = ""; // Clear table before adding new data
 
             if (snapshot.empty) {
                 console.warn("⚠️ No referrals found for user:", userEmail);
@@ -71,16 +51,14 @@ async function loadReferralDashboard(userEmail) {
             }
 
             snapshot.forEach(async (referralDoc) => {
+                console.log("🔍 Referral Doc:", referralDoc.data());
+
                 const referralData = referralDoc.data();
-                const referralUser = referralDoc.id; // Referral user's ID
+                const referralUser = referralDoc.id;
                 const infoRef = doc(db, "users", userEmail.toLowerCase(), "referrals", referralUser, "info");
                 const infoSnap = await getDoc(infoRef);
 
-                let referralInfo = {};
-                if (infoSnap.exists()) {
-                    referralInfo = infoSnap.data();
-                    console.log("🔹 Referral Info Loaded:", referralInfo);
-                } else {
+                if (!infoSnap.exists()) {
                     console.warn(`⚠️ No 'info' found for referral: ${referralUser}`);
                 }
 
@@ -97,13 +75,56 @@ async function loadReferralDashboard(userEmail) {
         }, (error) => {
             console.error("🚨 Error fetching referrals:", error);
         });
-
     } catch (error) {
         console.error("🚨 Error loading referral dashboard:", error);
     }
 }
 
-// Example Usage
-const userEmail = "cvhbj@sharklasers.com"; // Replace with actual user email
-loadReferralDashboard(userEmail);
+// ✅ Fetch Referral Details from API
+export async function fetchReferralDetails(userEmail) {
+    if (!userEmail) {
+        console.warn("⚠️ No user email provided for referral fetch.");
+        return;
+    }
+
+    try {
+        console.log("🔍 Fetching referral details for:", userEmail);
+
+        const authToken = await firebase.auth().currentUser.getIdToken();
+        const response = await fetch(`/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
+            headers: { Authorization: `Bearer ${authToken}` },
+        });
+
+        const data = await response.json();
+        console.log("✅ API Response:", data);
+
+        if (data.error) {
+            throw new Error(`❌ API error: ${JSON.stringify(data)}`);
+        }
+
+        // ✅ Update Referral Code on Dashboard
+        document.getElementById("user-referral-code").textContent = data.referralCode || "N/A";
+
+    } catch (error) {
+        console.error("🚨 Error fetching user referral code:", error);
+    }
+}
+
+// ✅ Copy Referral Code
+export function copyReferralCode() {
+    const referralCodeElement = document.getElementById("user-referral-code");
+    if (!referralCodeElement) {
+        console.error("❌ Referral code element not found!");
+        return;
+    }
+
+    const referralCode = referralCodeElement.textContent;
+    if (referralCode !== "N/A") {
+        navigator.clipboard.writeText(referralCode)
+            .then(() => alert("✅ Referral code copied!"))
+            .catch(err => console.error("❌ Copy failed:", err));
+    } else {
+        alert("⚠️ No referral code available to copy.");
+    }
+}
 
