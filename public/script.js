@@ -1205,33 +1205,34 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function fetchReferralDetails(userEmail) {
-        if (!userEmail) {
-            console.warn("⚠️ No user email provided for referral fetch.");
-            return;
-        }
-
+    async function fetchReferralDetails() {
         try {
-            console.log("🔍 Fetching referral details for:", userEmail);
-
-            const authToken = await firebase.auth().currentUser.getIdToken(); // ✅ Get Firebase token
-
-            const response = await fetch(`https://www.aicontrib.com/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
-                headers: {
-                    Authorization: `Bearer ${authToken}`, // ✅ Send token in request
-                },
-            });
-
-            const text = await response.text();
-            console.log("📄 Raw API Response:", text);
-
-            if (!response.ok) {
-                throw new Error(`❌ API error: ${response.status} - ${text}`);
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                console.error("🚨 No authenticated user found!");
+                return;
             }
 
-            const data = JSON.parse(text);
-            console.log("✅ Referral details fetched:", data);
-            return data;
+            const token = await user.getIdToken();
+            console.log("🔑 Auth Token:", token);
+
+            const response = await fetch('/api/user-referral', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            console.log("✅ API Response:", data);
+
+            if (data.error) {
+                throw new Error(`❌ API error: ${response.status} - ${JSON.stringify(data)}`);
+            }
+
+            document.getElementById("referralCode").innerText = data.referralCode || "N/A";
+
         } catch (error) {
             console.error("🚨 Error fetching user referral code:", error);
         }
