@@ -26,42 +26,58 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-app.get("/api/user-referral", async (req, res) => {
+export default async function handler(req, res) {
     try {
-        const userEmail = req.query.email;
-        console.log("📌 Received Request with email:", userEmail);
-
-        if (!userEmail) {
-            return res.status(400).json({ error: "Missing email parameter" });
+        if (req.method !== 'GET') {
+            return res.status(405).json({ error: 'Method Not Allowed' });
         }
 
-        // ✅ Normalize email to lowercase
-        const normalizedEmail = userEmail.toLowerCase();
-
-        // ✅ Check Firebase Auth
-        const authToken = req.headers.authorization?.split("Bearer ")[1];
-        if (!authToken) {
+        // ✅ Check if Authorization Header Exists
+        if (!req.headers.authorization) {
             return res.status(403).json({ error: "Unauthorized: No token provided" });
         }
 
-        const decodedToken = await admin.auth().verifyIdToken(authToken);
-        if (!decodedToken.email || decodedToken.email !== normalizedEmail) {
-            return res.status(403).json({ error: "Unauthorized: Invalid token" });
+        const token = req.headers.authorization.split("Bearer ")[1];
+        if (!token) {
+            return res.status(403).json({ error: "Unauthorized: Token is missing" });
         }
 
-        // ✅ Fetch User Data
-        const userDoc = await db.collection("users").doc(normalizedEmail).get();
-        if (!userDoc.exists) {
-            return res.status(404).json({ error: `User with email '${normalizedEmail}' not found in Firestore` });
-        }
+        try {
+            // ✅ Verify Firebase Token
+            const decodedToken = await admin.auth().verifyIdToken(token);
+            if (!decodedToken.email) {
+                return res.status(400).json({ error: "Invalid token: No email found" });
+            }
 
-        const userData = userDoc.data();
-        return res.json({ referralCode: userData.referralCode });
+            console.log("✅ Authenticated User:", decodedToken.email);
+
+            // ✅ Fetch Referral Data from Firestore
+            const userRef = db.collection("users").doc(decodedToken.email);
+            const userDoc = await userRef.get();
+
+            if (!userDoc.exists) {
+                return res.status(404).json({ error: "User referral not found" });
+            }
+
+            const userData = userDoc.data();
+            console.log("📌 User Data:", userData);
+
+            return res.status(200).json({
+                email: decodedToken.email,
+                referralCode: userData.referralCode || null,
+                referredBy: userData.referredBy || null,
+                referralCount: userData.referralCount || 0,
+            });
+
+        } catch (authError) {
+            console.error("❌ Firebase Auth Error:", authError);
+            return res.status(403).json({ error: "Unauthorized: Invalid or expired token" });
+        }
 
     } catch (error) {
-        console.error("🚨 Error fetching user referral code:", error);
+        console.error("❌ API Error:", error);
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
-});
+}
 
 export default app;
