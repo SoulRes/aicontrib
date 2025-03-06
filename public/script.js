@@ -1,4 +1,3 @@
-import { doc, collection, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 // Function to switch between sections (make it globally available)
 function switchSection(sectionId) {
     const sections = document.querySelectorAll('.content-section');
