@@ -1141,7 +1141,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("🔑 Auth Token:", token);
 
             // Make API request with correct token
-            fetch('/api/user-referral', {
+            fetch(`/api/user-referral?email=${encodeURIComponent(user.email)}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -1164,13 +1164,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            const userRef = db.collection("users").doc(userEmail);
-            const referralTable = document.querySelector("#referral-table tbody");
-            const totalBonusElement = document.getElementById("total-referral-bonus");
-            const referralCodeElement = document.getElementById("user-referral-code");
+            const referralTable = document.querySelector("#referral-table tbody") || null;
+            const totalBonusElement = document.getElementById("total-referral-bonus") || null;
+            const referralCodeElement = document.getElementById("user-referral-code") || null;
 
             if (!referralTable || !totalBonusElement || !referralCodeElement) {
-                console.error("❌ Referral dashboard elements not found!");
+                console.error("❌ Referral dashboard elements not found. Skipping UI updates.");
                 return;
             }
 
