@@ -426,13 +426,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Call the function with the current user's ID
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            fetchReferralDetails(user.email);
-        }
-    });
-
     // Firebase Authentication Logout
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
