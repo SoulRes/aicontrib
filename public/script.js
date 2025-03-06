@@ -1158,14 +1158,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function loadReferralDashboard(userEmail) {
         if (!userEmail) {
-            console.warn("⚠️ No email provided.");
+            console.warn("⚠️ No email provided. Skipping dashboard update.");
             return;
         }
 
         try {
             console.log("📡 Initializing referral dashboard for:", userEmail);
 
-            const userRef = db.collection("users").doc(userEmail.toLowerCase()); // Ensure lowercase match
+            const userRef = db.collection("users").doc(userEmail.toLowerCase());
 
             // ✅ Get required UI elements
             const referralTable = document.querySelector("#referral-table tbody");
@@ -1187,6 +1187,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const userData = doc.data();
                 console.log("✅ User Data Loaded:", userData);
 
+                // 🔄 Update UI
                 referralCodeElement.textContent = userData.referralCode || "N/A";
                 totalBonusElement.textContent = `${userData.usdt || 0} USDT`;
             });
