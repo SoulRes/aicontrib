@@ -1126,7 +1126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
 
-        const referralTableBody = document.querySelector("#referral-table tbody");
+    const referralTableBody = document.querySelector("#referral-table tbody");
 
         // Function to add a new row
     function addReferral(email = "N/A", status = "Pending", dateJoined = "N/A", bonus = "0 USDT") {
@@ -1174,7 +1174,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadReferralData() {
         auth.onAuthStateChanged(user => {
             if (user) {
-                const userEmail = user.email.replace(/\./g, ','); // Firestore does not support '.' in keys
+                const userEmail = user.email.toLowerCase().trim(); // Firestore does not support '.' in keys
                 const referralTableBody = document.querySelector('#referral-table tbody');
                 referralTableBody.innerHTML = ''; // Clear existing table data
                 
