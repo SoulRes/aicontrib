@@ -432,7 +432,7 @@ document.addEventListener("DOMContentLoaded", function () {
         logoutBtn.addEventListener('click', function() {
             auth.signOut().then(() => {
                 alert("Logged out!");
-                window.location.href = 'index.html';  // Redirect to the main page or login page
+                window.location.href = 'https://www.aicontrib.com';  // ✅ Redirect to the specified URL
             }).catch((error) => {
                 console.error("Logout error:", error);
             });
