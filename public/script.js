@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         signupForm.addEventListener('submit', function (event) {
             event.preventDefault(); // Prevent form submission
 
-            const email = document.getElementById('signup-email').value.toLowerCase().trim(); // Normalize email
+            const email = document.getElementById('signup-email').value; // Normalize email
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('signup-password-confirm').value;
             const passwordError = document.getElementById('password-error');
