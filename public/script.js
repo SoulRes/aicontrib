@@ -1160,7 +1160,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const db = firebase.firestore();
-            const userEmail = user.email.replace(/\./g, ','); // Convert . to , for Firestore keys
+            const userEmail = user.email.toLowerCase().trim();// Convert . to , for Firestore keys
             const userReferralsRef = db.collection("users").doc(userEmail).collection("referrals");
 
             const snapshot = await userReferralsRef.get();
