@@ -25,7 +25,7 @@ app.post('/api/store-referral', async (req, res) => {
             email: userId, // Assuming userId is email
             status: 'Pending',
             bonusEarned: 0,
-            dateJoined: admin.firestore.FieldValue.serverTimestamp(),
+            dateJoined: new Date().toISOString().split('T')[0], // Store only YYYY-MM-DD
         });
 
         return res.json({ success: true, message: 'Referral code stored successfully' });
