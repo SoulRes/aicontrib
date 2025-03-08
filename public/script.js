@@ -1126,6 +1126,27 @@ document.addEventListener("DOMContentLoaded", function () {
         slider.style.background = `linear-gradient(to right, green ${percentage}%, lightgrey ${percentage}%)`;
     }
 
+        const referralTableBody = document.querySelector("#referral-table tbody");
+
+        // Function to add a new row
+    function addReferral(email = "N/A", status = "Pending", dateJoined = "N/A", bonus = "0 USDT") {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${email}</td>
+            <td>${status}</td>
+            <td>${dateJoined}</td>
+            <td>${bonus}</td>
+        `;
+        referralTableBody.appendChild(row);
+    }
+
+    // Initialize with an empty row
+    addReferral();
+
+    // Simulating new referrals being added (Replace this with real data from Firebase)
+    setTimeout(() => addReferral("testuser@example.com", "Approved", "2025-03-08", "150 USDT"), 2000);
+    setTimeout(() => addReferral("newuser@example.com", "Pending", "2025-03-09", "0 USDT"), 4000);
+        
     // ✅ Initialize Referral Dashboard
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
