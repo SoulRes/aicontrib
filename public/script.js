@@ -1184,7 +1184,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadReferralData() {
         auth.onAuthStateChanged(user => {
             if (user) {
-                const userEmail = user.email.toLowerCase(); // Firestore does not support '.' in keys
+                const userEmail = user.email.toLowerCase().trim(); // Firestore does not support '.' in keys
                 const referralTableBody = document.querySelector('#referral-table tbody');
                 referralTableBody.innerHTML = ''; // Clear existing table data
                 
@@ -1198,18 +1198,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         
                         snapshot.forEach(doc => {
                             const referral = doc.data();
-                            const timestamp = referral.dateJoined;
-
-                            // ✅ Convert Firestore timestamp to Date (YYYY-MM-DD)
-                            let formattedDate = "N/A";
-                            if (timestamp && timestamp.toDate) {
-                                formattedDate = timestamp.toDate().toISOString().split('T')[0]; // Extract YYYY-MM-DD
-                            }
-
                             const row = `<tr>
                                 <td>${doc.id}</td>
                                 <td>${referral.status || 'Pending'}</td>
-                                <td>${formattedDate}</td>
+                                <td>${referral.timestamp || 'N/A'}</td>
                                 <td>${referral.bonusEarned || '0'} USDT</td>
                             </tr>`;
                             referralTableBody.innerHTML += row;
