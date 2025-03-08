@@ -1143,6 +1143,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize with an empty row
     addReferral();
         
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
     // Function to fetch and display referrals
     function loadReferralData() {
         auth.onAuthStateChanged(user => {
