@@ -1143,6 +1143,33 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize with an empty row
     addReferral();
 
+    async function fetchReferrals() {
+        try {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                console.error("❌ User not logged in");
+                return;
+            }
+
+            const db = firebase.firestore();
+            const userReferralsRef = db.collection("users").doc(user.email).collection("referrals");
+            
+            const snapshot = await userReferralsRef.get();
+            
+            if (snapshot.empty) {
+                console.warn("⚠️ No referral data found in Firestore.");
+            }
+
+            snapshot.forEach(doc => {
+                console.log("📄 Referral Data:", doc.id, "=>", doc.data());
+            });
+        } catch (error) {
+            console.error("🔥 Failed to fetch referrals:", error);
+        }
+    }
+
+    fetchReferrals();
+
     // Function to fetch and display referrals
     function loadReferralData() {
         auth.onAuthStateChanged(user => {
