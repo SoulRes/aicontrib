@@ -1,100 +1,54 @@
-// ✅ Function to load the referral dashboard
-async function loadReferralDashboard(userEmail) {
-    if (!userEmail) {
-        console.warn("⚠️ No email provided. Skipping dashboard update.");
-        return;
-    }
+// Firebase Configuration (Make sure Firebase SDK is included in your project)
+const firebaseConfig = {
+    apiKey: "AIzaSyDj2fDwpstFATN1GqzKdEvNqSe3u8EnNNM",
+    authDomain: "aicontribution.firebaseapp.com",
+    databaseURL: "https://aicontribution-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "aicontribution",
+    storageBucket: "aicontribution.appspot.com",
+    messagingSenderId: "847220817804",
+    appId: "1:847220817804:web:85e0307421f1ad87e4e0a9",
+    measurementId: "G-X9ZVDJLF8W"
+};
 
-    try {
-        console.log("📡 Initializing referral dashboard for:", userEmail);
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-        const userRef = doc(db, "users", userEmail.toLowerCase());
-        const referralsRef = collection(userRef, "referrals");
-
-        // ✅ Ensure elements exist
-        const referralTable = document.querySelector("#referral-table tbody");
-        const totalBonusElement = document.getElementById("total-referral-bonus");
-        const referralCodeElement = document.getElementById("user-referral-code");
-
-        if (!referralTable || !totalBonusElement || !referralCodeElement) {
-            console.error("❌ Referral dashboard elements not found.");
-            return;
+// Function to fetch and display referrals
+function loadReferralData() {
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            const userEmail = user.email.replace(/\./g, ','); // Firestore does not support '.' in keys
+            const referralTableBody = document.querySelector('#referral-table tbody');
+            referralTableBody.innerHTML = ''; // Clear existing table data
+            
+            db.collection('users').doc(userEmail).collection('referrals')
+                .get()
+                .then(snapshot => {
+                    if (snapshot.empty) {
+                        referralTableBody.innerHTML = '<tr><td colspan="4">No referrals yet.</td></tr>';
+                        return;
+                    }
+                    
+                    snapshot.forEach(doc => {
+                        const referral = doc.data();
+                        const row = `<tr>
+                            <td>${doc.id}</td>
+                            <td>${referral.status || 'Pending'}</td>
+                            <td>${referral.timestamp || 'N/A'}</td>
+                            <td>${referral.bonusEarned || '0'} USDT</td>
+                        </tr>`;
+                        referralTableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => {
+                    console.error('Failed to fetch referrals:', error);
+                    referralTableBody.innerHTML = '<tr><td colspan="4">Error loading referrals.</td></tr>';
+                });
         }
-
-        // ✅ Listen for user data changes
-        onSnapshot(userRef, (docSnap) => {
-            if (!docSnap.exists()) {
-                console.warn(`⚠️ No Firestore document found for user: ${userEmail}`);
-                return;
-            }
-
-            const userData = docSnap.data();
-            console.log("✅ User Data Loaded:", userData);
-
-            referralCodeElement.textContent = userData.referralCode || "N/A";
-            totalBonusElement.textContent = `${userData.usdt || 0} USDT`;
-        });
-
-        // ✅ Listen for real-time referral updates
-        onSnapshot(referralsRef, (snapshot) => {
-            console.log(`📌 Received ${snapshot.size} referral entries`);
-
-            referralTable.innerHTML = "";
-
-            if (snapshot.empty) {
-                referralTable.innerHTML = `<tr><td colspan='4'>No referrals yet</td></tr>`;
-                return;
-            }
-
-            snapshot.forEach((referralDoc) => {
-                const referralData = referralDoc.data();
-                const formattedDate = referralData.dateJoined ? new Date(referralData.dateJoined).toLocaleDateString() : "N/A";
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${referralData.email || "N/A"}</td>
-                    <td>${referralData.status || "Pending"}</td>
-                    <td>${formattedDate}</td>
-                    <td>${referralData.bonusEarned || 0} USDT</td>
-                `;
-                referralTable.appendChild(row);
-            });
-        });
-
-    } catch (error) {
-        console.error("🚨 Error loading referral dashboard:", error);
-    }
+    });
 }
 
-// ✅ Function to fetch referral details
-async function fetchReferralDetails(userEmail) {
-    if (!userEmail) {
-        console.warn("⚠️ No user email provided for referral fetch.");
-        return;
-    }
-
-    try {
-        console.log("🔍 Fetching referral details for:", userEmail);
-
-        const authToken = await firebase.auth().currentUser.getIdToken();
-        const response = await fetch(`/api/user-referral?email=${encodeURIComponent(userEmail)}`, {
-            headers: { Authorization: `Bearer ${authToken}` },
-        });
-
-        const data = await response.json();
-        console.log("✅ API Response:", data);
-
-        if (data.error) {
-            throw new Error(`❌ API error: ${JSON.stringify(data)}`);
-        }
-
-        document.getElementById("user-referral-code").textContent = data.referralCode || "N/A";
-
-    } catch (error) {
-        console.error("🚨 Error fetching user referral code:", error);
-    }
-}
-
-// ✅ Expose functions globally
-window.loadReferralDashboard = loadReferralDashboard;
-window.fetchReferralDetails = fetchReferralDetails;
+// Call function on page load
+window.onload = loadReferralData;
