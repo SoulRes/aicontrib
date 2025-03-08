@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
 
-// ✅ Parse Firebase credentials from ENV
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CREDENTIALS || "{}");
 
 // ✅ Initialize Firebase Admin if not already initialized
@@ -12,19 +11,23 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ✅ Serverless Function for Payment Success
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { userId, amountPaid, referralCode } = req.body;
-    const referralBonus = 150;
+    const { invoiceId, buyerEmail, amount, status } = req.body;
 
-    console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
+    console.log("🛠 BTCPay Payment Processing:", { invoiceId, buyerEmail, amount, status });
 
     try {
-        const userDocRef = db.collection("users").doc(userId);
+        // ✅ Ensure payment is confirmed
+        if (status !== "settled") {
+            console.warn("⚠️ Payment not settled yet:", status);
+            return res.status(400).json({ error: "Payment not completed" });
+        }
+
+        const userDocRef = db.collection("users").doc(buyerEmail);
         const userDoc = await userDocRef.get();
 
         if (!userDoc.exists) {
@@ -35,54 +38,37 @@ export default async function handler(req, res) {
         const userData = userDoc.data();
         console.log("📌 User Data:", userData);
 
-        // ✅ Ensure referralCode exists in request
-        if (!referralCode) {
-            console.log("⚠️ No referral code provided.");
+        // ✅ Check if the user was referred
+        if (!userData.referredBy) {
+            console.log("⚠️ No referral code linked.");
             return res.json({ message: "No referral linked to this purchase" });
         }
 
-        // ✅ Check if referralCode exists in Firestore
         const referrerSnapshot = await db.collection("users")
-            .where("referralCode", "==", referralCode)
+            .where("referralCode", "==", userData.referredBy)
             .limit(1)
             .get();
 
         if (referrerSnapshot.empty) {
-            console.log("❌ No user found with this referral code:", referralCode);
+            console.log("❌ No referrer found for code:", userData.referredBy);
             return res.status(404).json({ error: "Invalid referral code" });
         }
 
         const referrerDoc = referrerSnapshot.docs[0];
         const referrerId = referrerDoc.id;
-        console.log("✅ Referrer found:", referrerId);
+        console.log("✅ Referrer Found:", referrerId);
 
-        // ✅ Update referrer's USDT balance and referral count
+        // ✅ Update referrer's earnings
         await db.collection("users").doc(referrerId).update({
-            usdt: admin.firestore.FieldValue.increment(referralBonus),
+            usdt: admin.firestore.FieldValue.increment(150),
             referralCount: admin.firestore.FieldValue.increment(1)
         });
 
-        // ✅ Update referral status for the referred user
-        const referralRef = db.collection("users").doc(referrerId).collection("referrals").doc(userId);
-        const referralDoc = await referralRef.get();
-
-        if (referralDoc.exists) {
-            await referralRef.update({
-                status: "Paid",
-                bonusEarned: referralBonus
-            });
-        } else {
-            await referralRef.set({
-                status: "Paid",
-                bonusEarned: referralBonus,
-                timestamp: admin.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
-        // ✅ Log purchase for the user
-        await db.collection("users").doc(userId).collection("purchases").add({
-            amount: amountPaid,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        // ✅ Update referral status
+        const referralRef = db.collection("users").doc(referrerId).collection("referrals").doc(buyerEmail);
+        await referralRef.update({
+            status: "Paid",
+            bonusEarned: 150
         });
 
         // ✅ Activate the user's account after payment
@@ -91,8 +77,9 @@ export default async function handler(req, res) {
             activationDate: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        console.log("✅ Payment success, account activated!");
-        return res.json({ success: true, message: "Payment recorded, referrer updated, and account activated" });
+        console.log("✅ Payment successful, referral updated, account activated!");
+        return res.json({ success: true, message: "Payment processed and account activated" });
+
     } catch (error) {
         console.error("🚨 Error handling payment:", error);
         return res.status(500).json({ error: "Server error" });
