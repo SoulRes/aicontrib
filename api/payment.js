@@ -1,4 +1,5 @@
 import admin from "firebase-admin";
+import crypto from "crypto";
 
 // ✅ Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
@@ -9,74 +10,95 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ✅ Serverless Function for Payment Processing
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { userId, amountPaid, referralCode, orderId, currency } = req.body;
-
-    // ✅ Validate `userId` before proceeding
-    if (!userId || typeof userId !== "string" || userId.trim() === "") {
-        console.error("🚨 Error: Invalid or missing userId");
-        return res.status(400).json({ error: "Invalid userId" });
-    }
-
-    console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
-
     try {
+        // 🔹 Check if request is from BTCPay webhook
+        const isBTCPayWebhook = req.headers["btcpay-sig"];
+
+        if (isBTCPayWebhook) {
+            console.log("📡 Received BTCPay Webhook");
+            const signature = req.headers["btcpay-sig"];
+            const payload = JSON.stringify(req.body);
+            const secret = process.env.BTCPAY_WEBHOOK_SECRET;
+
+            if (!secret) {
+                console.error("🚨 Missing BTCPAY_WEBHOOK_SECRET");
+                return res.status(500).json({ error: "Webhook secret not set" });
+            }
+
+            // ✅ Validate Webhook Signature
+            const hash = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+            if (signature !== hash) {
+                return res.status(401).json({ error: "Unauthorized: Invalid Signature" });
+            }
+
+            // ✅ Extract payment details
+            const { invoiceId, status, buyerEmail } = req.body;
+            console.log("💰 Payment Received:", { invoiceId, status, buyerEmail });
+
+            if (status !== "complete") {
+                return res.status(400).json({ error: "Payment not completed" });
+            }
+
+            // ✅ Find user by email
+            const userSnapshot = await db.collection("users").where("email", "==", buyerEmail).limit(1).get();
+
+            if (userSnapshot.empty) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            const userRef = userSnapshot.docs[0].ref;
+            await userRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
+
+            console.log("✅ User Activated:", buyerEmail);
+            return res.json({ success: true, message: "Payment processed successfully" });
+        }
+
+        // 🔹 Manual Payment Confirmation (Frontend Call)
+        const { userId, amountPaid, referralCode } = req.body;
+        console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
+
         const userDocRef = db.collection("users").doc(userId);
         const userDoc = await userDocRef.get();
 
         if (!userDoc.exists) {
-            console.log("❌ User not found in Firestore");
             return res.status(404).json({ error: "User not found" });
         }
 
-        // ✅ Process referral bonus if applicable
         if (referralCode) {
+            // ✅ Find Referrer
             const referrerSnapshot = await db.collection("users")
                 .where("referralCode", "==", referralCode)
                 .limit(1)
                 .get();
 
             if (!referrerSnapshot.empty) {
-                const referrerDoc = referrerSnapshot.docs[0];
-                const referrerId = referrerDoc.id;
+                const referrerId = referrerSnapshot.docs[0].id;
+                console.log("🏆 Referral bonus applied for:", referrerId);
 
-                console.log("✅ Referrer found:", referrerId);
-
-                // ✅ Update referrer's balance and referral count
                 await db.collection("users").doc(referrerId).update({
                     usdt: admin.firestore.FieldValue.increment(150),
-                    referralCount: admin.firestore.FieldValue.increment(1),
+                    referralCount: admin.firestore.FieldValue.increment(1)
                 });
 
-                // ✅ Update referral status in Firestore
                 await db.collection("users").doc(referrerId).collection("referrals").doc(userId).set({
                     status: "Paid",
                     bonusEarned: 150,
-                    timestamp: admin.firestore.FieldValue.serverTimestamp(),
-                }, { merge: true });
+                    timestamp: admin.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                console.warn("⚠️ Invalid referral code:", referralCode);
             }
         }
 
-        // ✅ Log purchase for the user
-        await db.collection("users").doc(userId).collection("purchases").add({
-            amount: amountPaid,
-            orderId,
-            currency,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        // ✅ Activate User
+        await userDocRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
 
-        // ✅ Activate user after payment
-        await userDocRef.update({
-            status: "Activated",
-            activationDate: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        console.log("✅ Payment processed successfully!");
+        console.log("✅ Payment Success: User Activated!");
         return res.json({ success: true, message: "Payment recorded, referrer updated, and account activated" });
     } catch (error) {
         console.error("🚨 Error processing payment:", error);
