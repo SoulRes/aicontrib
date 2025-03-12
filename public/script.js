@@ -650,6 +650,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔥 Fetch user referral code **before** allowing input
     getUserReferralCode();
 
+    // ✅ Function to process payment
     async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId, toEmail) {
         console.log("🛠 processPayment called:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId, toEmail });
 
@@ -671,10 +672,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     await saveReferralCodeToFirebase(referralCode, userId);
                 }
 
-                // ✅ Send payment success & email
-                console.log("📤 Sending payment confirmation...");
-                await sendPaymentSuccess(userId, priceAmount, toEmail, orderId, priceCurrency);
+                // ✅ Send payment notification to backend
+                console.log("📤 Notifying backend of payment...");
+                await notifyBackendPayment(userId, priceAmount, referralCode, orderId, priceCurrency);
 
+                // ✅ Redirect user to checkout
                 window.location.href = data.checkoutLink;
             } else {
                 console.error("❌ Payment error:", data.error || "No checkout link.");
@@ -685,26 +687,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Notify Backend & Send Email
-    async function sendPaymentSuccess(userId, amountPaid, toEmail, orderId, currency, referralCode = null) {
+    // ✅ Notify Backend & Trigger Referral Updates
+    async function notifyBackendPayment(userId, amountPaid, referralCode, orderId, currency) {
         try {
-            const response = await fetch("/api/payment-success", {
+            const response = await fetch("/api/payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, amountPaid, referralCode })
+                body: JSON.stringify({ userId, amountPaid, referralCode, orderId, currency })
             });
 
             const data = await response.json();
             if (data.success) {
-                console.log("✅ Payment success recorded:", data.message);
-
-                // ✅ Send Confirmation Email from Frontend
-                await sendConfirmationEmail(toEmail, orderId, amountPaid, currency);
+                console.log("✅ Payment recorded successfully:", data.message);
             } else {
-                console.error("❌ Payment success failed:", data.error);
+                console.error("❌ Payment processing failed:", data.error);
             }
         } catch (error) {
-            console.error("🚨 Error sending payment success:", error);
+            console.error("🚨 Error sending payment data to backend:", error);
         }
     }
 
