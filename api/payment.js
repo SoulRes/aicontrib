@@ -37,30 +37,41 @@ export default async function handler(req, res) {
             }
 
             // ✅ Extract payment details
-            const { invoiceId, status, buyerEmail } = req.body;
-            console.log("💰 Payment Received:", { invoiceId, status, buyerEmail });
+            const { invoiceId, status, userId } = req.body;  // 🔹 Updated from buyerEmail to userId
+            console.log("💰 Payment Received:", { invoiceId, status, userId });
 
             if (status !== "complete") {
                 return res.status(400).json({ error: "Payment not completed" });
             }
 
-            // ✅ Find user by email
-            const userSnapshot = await db.collection("users").where("email", "==", buyerEmail).limit(1).get();
+            if (!userId) {
+                console.error("🚨 Missing userId in webhook data");
+                return res.status(400).json({ error: "Invalid userId" });
+            }
 
-            if (userSnapshot.empty) {
+            // ✅ Find user by userId
+            const userDocRef = db.collection("users").doc(userId);
+            const userDoc = await userDocRef.get();
+
+            if (!userDoc.exists) {
                 return res.status(404).json({ error: "User not found" });
             }
 
-            const userRef = userSnapshot.docs[0].ref;
-            await userRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
+            // ✅ Activate User
+            await userDocRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
 
-            console.log("✅ User Activated:", buyerEmail);
+            console.log("✅ User Activated:", userId);
             return res.json({ success: true, message: "Payment processed successfully" });
         }
 
         // 🔹 Manual Payment Confirmation (Frontend Call)
         const { userId, amountPaid, referralCode } = req.body;
         console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
+
+        if (!userId) {
+            console.error("🚨 Missing userId in manual payment request");
+            return res.status(400).json({ error: "Invalid userId" });
+        }
 
         const userDocRef = db.collection("users").doc(userId);
         const userDoc = await userDocRef.get();
@@ -105,4 +116,3 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server error" });
     }
 }
-
