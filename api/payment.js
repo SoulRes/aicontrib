@@ -19,45 +19,47 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 🔹 Check if request is from BTCPay webhook
         const isBTCPayWebhook = req.headers["btcpay-sig"];
         
         if (isBTCPayWebhook) {
             console.log("📡 Received BTCPay Webhook");
-            const signature = req.headers["btcpay-sig"];
-            const payload = JSON.stringify(req.body, null, 0); // Ensure consistent formatting
-            console.log("🔄 Raw Payload:", payload);
+            
             const secret = process.env.BTCPAY_WEBHOOK_SECRET;
             if (!secret) {
                 console.error("🚨 Missing BTCPAY_WEBHOOK_SECRET");
                 return res.status(500).json({ error: "Webhook secret not set" });
             }
-
+            
             const receivedSignature = req.headers["btcpay-sig"];
-            const computedSignature = crypto.createHmac("sha256", secret).update(Buffer.from(payload)).digest("hex");
-
+            const payload = JSON.stringify(req.body);
+            console.log("🔄 Raw Payload:", payload);
+            
+            const computedSignature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
             console.log("🔐 Validating signature: Received:", receivedSignature, "Computed:", computedSignature);
-
+            
             if (receivedSignature !== computedSignature) {
                 console.error("❌ Unauthorized: Invalid Signature");
                 return res.status(401).json({ error: "Unauthorized: Invalid Signature" });
             }
-
-            // ✅ Extract payment details
-            const { invoiceId, status, userId } = req.body;
+            
+            // ✅ Extract payment details (debugging full payload structure)
+            console.log("📡 Full Webhook Payload:", JSON.stringify(req.body, null, 2));
+            const invoiceId = req.body.invoiceId || req.body.data?.invoiceId;
+            const status = req.body.status || req.body.data?.status;
+            const userId = req.body.userId || req.body.data?.userId;
+            
             console.log("💰 Payment Data:", { invoiceId, status, userId });
 
             if (status !== "complete") {
                 console.warn("⚠️ Payment not completed, ignoring.");
                 return res.status(400).json({ error: "Payment not completed" });
             }
-
+            
             if (!userId) {
                 console.error("🚨 Missing userId in webhook data");
                 return res.status(400).json({ error: "Invalid userId" });
             }
-
-            // ✅ Find user by userId
+            
             const userDocRef = db.collection("users").doc(userId);
             const userDoc = await userDocRef.get();
 
