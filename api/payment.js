@@ -19,8 +19,9 @@ export default async function handler(req, res) {
     }
 
     try {
-        const isBTCPayWebhook = req.headers["btcpay-sig"];
-        
+        const receivedSignature = req.headers["btcpay-sig"];
+        const isBTCPayWebhook = Boolean(receivedSignature);
+
         if (isBTCPayWebhook) {
             console.log("📡 Received BTCPay Webhook");
             
@@ -30,7 +31,6 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: "Webhook secret not set" });
             }
             
-            const receivedSignature = req.headers["btcpay-sig"];
             const payload = JSON.stringify(req.body);
             console.log("🔄 Raw Payload:", payload);
             
@@ -42,12 +42,9 @@ export default async function handler(req, res) {
                 return res.status(401).json({ error: "Unauthorized: Invalid Signature" });
             }
             
-            // ✅ Extract payment details (debugging full payload structure)
+            // ✅ Extract payment details
             console.log("📡 Full Webhook Payload:", JSON.stringify(req.body, null, 2));
-            const invoiceId = req.body.invoiceId || req.body.data?.invoiceId;
-            const status = req.body.status || req.body.data?.status;
-            const userId = req.body.userId || req.body.data?.userId;
-            
+            const { invoiceId, status, userId } = req.body;
             console.log("💰 Payment Data:", { invoiceId, status, userId });
 
             if (status !== "complete") {
@@ -126,3 +123,4 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server error" });
     }
 }
+
