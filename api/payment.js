@@ -11,14 +11,17 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 export default async function handler(req, res) {
+    console.log("🔄 Incoming request:", req.method, req.headers);
+
     if (req.method !== "POST") {
+        console.warn("🚫 Method not allowed:", req.method);
         return res.status(405).json({ error: "Method Not Allowed" });
     }
 
     try {
         // 🔹 Check if request is from BTCPay webhook
         const isBTCPayWebhook = req.headers["btcpay-sig"];
-
+        
         if (isBTCPayWebhook) {
             console.log("📡 Received BTCPay Webhook");
             const signature = req.headers["btcpay-sig"];
@@ -32,15 +35,19 @@ export default async function handler(req, res) {
 
             // ✅ Validate Webhook Signature
             const hash = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+            console.log("🔐 Validating signature: Received:", signature, "Computed:", hash);
+            
             if (signature !== hash) {
+                console.error("❌ Unauthorized: Invalid Signature");
                 return res.status(401).json({ error: "Unauthorized: Invalid Signature" });
             }
 
             // ✅ Extract payment details
-            const { invoiceId, status, userId } = req.body;  // 🔹 Updated from buyerEmail to userId
-            console.log("💰 Payment Received:", { invoiceId, status, userId });
+            const { invoiceId, status, userId } = req.body;
+            console.log("💰 Payment Data:", { invoiceId, status, userId });
 
             if (status !== "complete") {
+                console.warn("⚠️ Payment not completed, ignoring.");
                 return res.status(400).json({ error: "Payment not completed" });
             }
 
@@ -54,19 +61,19 @@ export default async function handler(req, res) {
             const userDoc = await userDocRef.get();
 
             if (!userDoc.exists) {
+                console.error("❌ User not found for userId:", userId);
                 return res.status(404).json({ error: "User not found" });
             }
 
             // ✅ Activate User
             await userDocRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
-
             console.log("✅ User Activated:", userId);
             return res.json({ success: true, message: "Payment processed successfully" });
         }
 
         // 🔹 Manual Payment Confirmation (Frontend Call)
         const { userId, amountPaid, referralCode } = req.body;
-        console.log("🛠 Processing payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
+        console.log("🛠 Processing manual payment for:", userId, "Amount:", amountPaid, "Referral Code:", referralCode);
 
         if (!userId) {
             console.error("🚨 Missing userId in manual payment request");
@@ -77,6 +84,7 @@ export default async function handler(req, res) {
         const userDoc = await userDocRef.get();
 
         if (!userDoc.exists) {
+            console.error("❌ User not found for userId:", userId);
             return res.status(404).json({ error: "User not found" });
         }
 
@@ -108,7 +116,6 @@ export default async function handler(req, res) {
 
         // ✅ Activate User
         await userDocRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
-
         console.log("✅ Payment Success: User Activated!");
         return res.json({ success: true, message: "Payment recorded, referrer updated, and account activated" });
     } catch (error) {
