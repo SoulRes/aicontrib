@@ -25,19 +25,20 @@ export default async function handler(req, res) {
         if (isBTCPayWebhook) {
             console.log("📡 Received BTCPay Webhook");
             const signature = req.headers["btcpay-sig"];
-            const payload = JSON.stringify(req.body);
+            const payload = JSON.stringify(req.body, null, 0); // Ensure consistent formatting
+            console.log("🔄 Raw Payload:", payload);
             const secret = process.env.BTCPAY_WEBHOOK_SECRET;
-
             if (!secret) {
                 console.error("🚨 Missing BTCPAY_WEBHOOK_SECRET");
                 return res.status(500).json({ error: "Webhook secret not set" });
             }
 
-            // ✅ Validate Webhook Signature
-            const hash = crypto.createHmac("sha256", secret).update(payload).digest("hex");
-            console.log("🔐 Validating signature: Received:", signature, "Computed:", hash);
-            
-            if (signature !== hash) {
+            const receivedSignature = req.headers["btcpay-sig"];
+            const computedSignature = crypto.createHmac("sha256", secret).update(Buffer.from(payload)).digest("hex");
+
+            console.log("🔐 Validating signature: Received:", receivedSignature, "Computed:", computedSignature);
+
+            if (receivedSignature !== computedSignature) {
                 console.error("❌ Unauthorized: Invalid Signature");
                 return res.status(401).json({ error: "Unauthorized: Invalid Signature" });
             }
