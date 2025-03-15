@@ -5,13 +5,13 @@ export default async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { price, currency, orderId, userId, referralCode } = req.body;
+  const { price, currency, orderId, userEmail, referralCode } = req.body;
 
   console.log('🔄 Creating payment with:', {
     price,
     currency,
     orderId,
-    userId,
+    userEmail,
     referralCode: referralCode || 'No referral',
   });
 
@@ -27,7 +27,7 @@ export default async (req, res) => {
         currency: currency,
         metadata: {
           orderId,
-          userId, // ✅ Ensures userId is correctly sent to webhook
+          userEmail, // ✅ Ensures userEmail is correctly sent to webhook
           ...(referralCode ? { referralCode } : {}), // ✅ Only send referralCode if it exists
           itemDesc: "My Product"
         },
@@ -40,7 +40,7 @@ export default async (req, res) => {
           requiresRefundEmail: false,
         },
         additionalSearchTerms: ["product", "my-store"],
-        posData: JSON.stringify({ userId, referralCode }) // ✅ Correctly formatted for BTCPay
+        posData: JSON.stringify({ userEmail, referralCode }) // ✅ Correctly formatted for BTCPay
       }),
     });
 

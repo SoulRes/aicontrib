@@ -651,8 +651,8 @@ document.addEventListener("DOMContentLoaded", function () {
     getUserReferralCode();
 
     // ✅ Function to process payment
-    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId, toEmail) {
-        console.log("🛠 processPayment called:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userId, toEmail });
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userEmail, toEmail) {
+        console.log("🛠 processPayment called:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userEmail, toEmail });
 
         try {
             const response = await fetch('/api/create-payment', {
@@ -663,7 +663,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     currency: priceCurrency, 
                     paymentMethod, 
                     orderId, 
-                    userId, // ✅ Ensure userId is sent
+                    userEmail, // ✅ Ensure userEmail is sent
                     referralCode: referralCode || null // ✅ Ensure referralCode is sent if available
                 })
             });
@@ -676,12 +676,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 // ✅ Store referral before payment
                 if (referralCode) {
                     console.log("📝 Saving referral code:", referralCode);
-                    await saveReferralCodeToFirebase(referralCode, userId);
+                    await saveReferralCodeToFirebase(referralCode, userEmail);
                 }
 
                 // ✅ Send payment notification to backend
                 console.log("📤 Notifying backend of payment...");
-                await notifyBackendPayment(userId, priceAmount, referralCode, orderId, priceCurrency);
+                await notifyBackendPayment(userEmail, priceAmount, referralCode, orderId, priceCurrency);
 
                 // ✅ Redirect user to checkout
                 window.location.href = data.checkoutLink;
@@ -695,12 +695,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Notify Backend & Trigger Referral Updates
-    async function notifyBackendPayment(userId, amountPaid, referralCode, orderId, currency) {
+    async function notifyBackendPayment(userEmail, amountPaid, referralCode, orderId, currency) {
         try {
             const response = await fetch("/api/payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, amountPaid, referralCode, orderId, currency })
+                body: JSON.stringify({ userEmail, amountPaid, referralCode, orderId, currency })
             });
 
             const data = await response.json();
@@ -715,12 +715,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Function to store referral code in Firestore
-    async function saveReferralCodeToFirebase(referralCode, userId) {
+    async function saveReferralCodeToFirebase(referralCode, userEmail) {
         try {
             const response = await fetch('/api/store-referral', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ referralCode, userId }),
+                body: JSON.stringify({ referralCode, userEmail }),
             });
 
             const data = await response.json();
@@ -1095,7 +1095,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Send the transaction details to Firestore for admin processing
             db.collection("pendingTransactions").add({
-                userId: auth.currentUser.email,
+                userEmail: auth.currentUser.email,
                 usdtAmount: usdtAmount,
                 usdtAddress: usdtAddress,
                 status: 'Pending', // Transaction status

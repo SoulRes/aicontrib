@@ -56,10 +56,10 @@ export default async function handler(req, res) {
 
             const invoiceId = bodyJson.invoiceId || bodyJson.data?.invoiceId;
             const status = bodyJson.status || bodyJson.data?.status;
-            const userId = bodyJson.metadata?.userId; // 🔹 Store userId inside "metadata" in BTCPay
+            const userEmail = bodyJson.metadata?.userEmail; // 🔹 Store userEmail inside "metadata" in BTCPay
             const eventType = bodyJson.type; // 🔹 Identify event type
 
-            console.log("💰 Payment Data:", { invoiceId, status, userId, eventType });
+            console.log("💰 Payment Data:", { invoiceId, status, userEmail, eventType });
 
             // ✅ Ensure it's an Invoice Settled event
             if (!["InvoiceSettled", "InvoiceProcessing", "InvoicePaymentSettled"].includes(eventType)) {
@@ -67,22 +67,22 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "Ignoring non-payment event" });
             }
 
-            if (!userId) {
-                console.error("🚨 Missing userId in webhook data");
-                return res.status(400).json({ error: "Invalid userId" });
+            if (!userEmail) {
+                console.error("🚨 Missing userEmail in webhook data");
+                return res.status(400).json({ error: "Invalid userEmail" });
             }
 
-            const userDocRef = db.collection("users").doc(userId);
+            const userDocRef = db.collection("users").doc(userEmail);
             const userDoc = await userDocRef.get();
 
             if (!userDoc.exists) {
-                console.error("❌ User not found for userId:", userId);
+                console.error("❌ User not found for userEmail:", userEmail);
                 return res.status(404).json({ error: "User not found" });
             }
 
             // ✅ Activate User
             await userDocRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
-            console.log("✅ User Activated:", userId);
+            console.log("✅ User Activated:", userEmail);
             return res.json({ success: true, message: "Payment processed successfully" });
         }
 
