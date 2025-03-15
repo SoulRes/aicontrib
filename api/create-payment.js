@@ -22,26 +22,26 @@ export default async (req, res) => {
         'Authorization': `token ${process.env.BTCPAY_API_KEY}`,
         'Content-Type': 'application/json',
       },
-        body: JSON.stringify({
-          amount: price,
-          currency: currency,
-          metadata: {
-            orderId,
-            userId: userId || "",  // ✅ Ensures userId is always sent
-            ...(referralCode ? { referralCode } : {}), // ✅ Only send referralCode if it exists
-            itemDesc: "My Product"
-          },
-          checkout: {
-            speedPolicy: "HighSpeed",
-            expirationMinutes: 90,
-            monitoringMinutes: 90,
-            redirectURL: process.env.SUCCESS_URL || "https://aicontrib.com/success",
-            redirectAutomatically: true,
-            requiresRefundEmail: false,
-          },
-          additionalSearchTerms: ["product", "my-store"],
-          posData: JSON.stringify({ userId, referralCode }) // ✅ Correctly formatted for BTCPay
-        }),
+      body: JSON.stringify({
+        amount: price,
+        currency: currency,
+        metadata: {
+          orderId,
+          userId, // ✅ Ensures userId is correctly sent to webhook
+          ...(referralCode ? { referralCode } : {}), // ✅ Only send referralCode if it exists
+          itemDesc: "My Product"
+        },
+        checkout: {
+          speedPolicy: "HighSpeed",
+          expirationMinutes: 90,
+          monitoringMinutes: 90,
+          redirectURL: process.env.SUCCESS_URL || "https://aicontrib.com/success",
+          redirectAutomatically: true,
+          requiresRefundEmail: false,
+        },
+        additionalSearchTerms: ["product", "my-store"],
+        posData: JSON.stringify({ userId, referralCode }) // ✅ Correctly formatted for BTCPay
+      }),
     });
 
     const data = await response.json();
