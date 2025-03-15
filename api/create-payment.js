@@ -5,13 +5,14 @@ export default async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { price, currency, orderId, referrerId } = req.body;
+  const { price, currency, orderId, userId, referralCode } = req.body; // ✅ Include userId and referralCode
 
-  console.log('Creating payment with the following data:', {
+  console.log('🔄 Creating payment with:', {
     price,
     currency,
     orderId,
-    referrerId: referrerId || 'No referrer', // Log referrer
+    userId,
+    referralCode: referralCode || 'No referral',
   });
 
   try {
@@ -22,10 +23,14 @@ export default async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        amount: price,
+        currency: currency,
         metadata: {
-          orderId: orderId,
+          orderId,
+          userId,         // ✅ Now webhook receives userId
+          referralCode,   // ✅ Now webhook receives referralCode
           itemDesc: "My Product",
-          posData: { referrerId: referrerId || null }, // Include referrerId conditionally
+          posData: JSON.stringify({ userId, referralCode }) // ✅ Structured correctly for BTCPay
         },
         checkout: {
           speedPolicy: "HighSpeed",
@@ -35,8 +40,6 @@ export default async (req, res) => {
           redirectAutomatically: true,
           requiresRefundEmail: false,
         },
-        amount: price,
-        currency: currency,
         additionalSearchTerms: ["product", "my-store"],
       }),
     });
@@ -44,47 +47,14 @@ export default async (req, res) => {
     const data = await response.json();
 
     if (response.ok && data.checkoutLink) {
-      console.log('Payment creation successful:', data);
-
-      if (referrerId) {
-        console.log('Crediting referrer with 50% reward...');
-        await creditReferrer(referrerId, price / 2); // Credit referrer 50% of price
-      }
-
+      console.log('✅ Payment creation successful:', data);
       return res.status(200).json(data);
     } else {
-      console.error('Error creating payment:', await response.text());
+      console.error('❌ Error creating payment:', await response.text());
       return res.status(500).json({ error: 'Failed to create payment' });
     }
   } catch (error) {
-    console.error('Error creating payment:', error);
+    console.error('🚨 Error creating payment:', error);
     return res.status(500).json({ error: error.message });
   }
 };
-
-async function creditReferrer(referrerId, rewardAmount) {
-  try {
-    const response = await fetch(`${process.env.YOUR_API_BASE_URL}/api/credit-referrer`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_API_KEY}`,
-      },
-      body: JSON.stringify({
-        referrerId,
-        rewardAmount,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      console.log('Referral reward credited successfully:', data);
-    } else {
-      console.error('Failed to credit referral reward:', data.error || 'Unknown error.');
-    }
-  } catch (error) {
-    console.error('Error crediting referral reward:', error);
-  }
-}
-
