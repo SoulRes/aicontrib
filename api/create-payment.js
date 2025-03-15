@@ -5,7 +5,7 @@ export default async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { price, currency, orderId, userId, referralCode } = req.body; // ✅ Include userId and referralCode
+  const { price, currency, orderId, userId, referralCode } = req.body;
 
   console.log('🔄 Creating payment with:', {
     price,
@@ -27,10 +27,9 @@ export default async (req, res) => {
         currency: currency,
         metadata: {
           orderId,
-          userId,         // ✅ Now webhook receives userId
-          referralCode,   // ✅ Now webhook receives referralCode
-          itemDesc: "My Product",
-          posData: JSON.stringify({ userId, referralCode }) // ✅ Structured correctly for BTCPay
+          userId, // ✅ Ensures userId is correctly sent to webhook
+          ...(referralCode ? { referralCode } : {}), // ✅ Only send referralCode if it exists
+          itemDesc: "My Product"
         },
         checkout: {
           speedPolicy: "HighSpeed",
@@ -41,20 +40,21 @@ export default async (req, res) => {
           requiresRefundEmail: false,
         },
         additionalSearchTerms: ["product", "my-store"],
+        posData: JSON.stringify({ userId, referralCode }) // ✅ Correctly formatted for BTCPay
       }),
     });
 
     const data = await response.json();
 
     if (response.ok && data.checkoutLink) {
-      console.log('✅ Payment creation successful:', data);
+      console.log('✅ Payment created successfully:', data);
       return res.status(200).json(data);
     } else {
-      console.error('❌ Error creating payment:', await response.text());
-      return res.status(500).json({ error: 'Failed to create payment' });
+      console.error('❌ Payment creation failed:', data);
+      return res.status(500).json({ error: data.error || 'Failed to create payment' });
     }
   } catch (error) {
-    console.error('🚨 Error creating payment:', error);
+    console.error('🚨 Error in create-payment:', error);
     return res.status(500).json({ error: error.message });
   }
 };
