@@ -658,7 +658,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ price: priceAmount, currency: priceCurrency, paymentMethod, orderId })
+                body: JSON.stringify({ 
+                    price: priceAmount, 
+                    currency: priceCurrency, 
+                    paymentMethod, 
+                    orderId, 
+                    userId, // ✅ Ensure userId is sent
+                    referralCode: referralCode || null // ✅ Ensure referralCode is sent if available
+                })
             });
 
             const data = await response.json();
