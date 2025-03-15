@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
 import crypto from "crypto";
-import { buffer } from "micro"; // Needed to handle raw body
 
 // ✅ Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -11,7 +10,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-export const config = { api: { bodyParser: false } }; // 🚨 Disable automatic body parsing
+export const config = { api: { bodyParser: false } }; // 🚨 Disable JSON body parsing
 
 export default async function handler(req, res) {
     console.log("🔄 Incoming request:", req.method, req.headers);
@@ -22,8 +21,16 @@ export default async function handler(req, res) {
     }
 
     try {
+        // ✅ Read raw request body
+        let rawBody = "";
+        await new Promise((resolve, reject) => {
+            req.on("data", chunk => (rawBody += chunk));
+            req.on("end", resolve);
+            req.on("error", reject);
+        });
+
         const isBTCPayWebhook = req.headers["btcpay-sig"];
-        
+
         if (isBTCPayWebhook) {
             console.log("📡 Received BTCPay Webhook");
 
@@ -33,12 +40,10 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: "Webhook secret not set" });
             }
 
-            // ✅ Read raw request body (VERY IMPORTANT)
-            const rawBody = await buffer(req); // Get raw body
             const receivedSignature = req.headers["btcpay-sig"];
             const computedSignature = "sha256=" + crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
 
-            console.log("🔄 Raw Payload:", rawBody.toString());
+            console.log("🔄 Raw Payload:", rawBody);
             console.log("🔐 Validating signature: Received:", receivedSignature, "Computed:", computedSignature);
 
             if (receivedSignature !== computedSignature) {
@@ -47,7 +52,7 @@ export default async function handler(req, res) {
             }
 
             // ✅ Extract payment details
-            const bodyJson = JSON.parse(rawBody.toString());
+            const bodyJson = JSON.parse(rawBody);
             console.log("📡 Full Webhook Payload:", JSON.stringify(bodyJson, null, 2));
 
             const invoiceId = bodyJson.invoiceId || bodyJson.data?.invoiceId;
