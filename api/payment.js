@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             const payload = JSON.stringify(req.body);
             console.log("🔄 Raw Payload:", payload);
             
-            const computedSignature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+            const computedSignature = `sha256=${crypto.createHmac("sha256", secret).update(payload).digest("hex")}`;
             console.log("🔐 Validating signature: Received:", receivedSignature, "Computed:", computedSignature);
             
             if (receivedSignature !== computedSignature) {
@@ -46,8 +46,8 @@ export default async function handler(req, res) {
             console.log("📡 Full Webhook Payload:", JSON.stringify(req.body, null, 2));
 
             const invoiceId = req.body.invoiceId || req.body.data?.invoiceId;
-            const status = req.body.status || req.body.data?.status;
-            const metadata = req.body.metadata || {};  // Extract metadata if available
+            const status = req.body.status || req.body.data?.status || req.body.type;
+            const metadata = req.body.metadata || req.body.data?.metadata || {}; // Extract metadata if available
             const userId = metadata.userId || null;  // Get userId from metadata
             const referralCode = metadata.referralCode || null;  // Get referralCode from metadata
 
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "Invalid userId" });
             }
 
-            if (status !== "complete" && req.body.type !== "InvoicePaymentSettled") {
+            if (status !== "complete" && status !== "InvoicePaymentSettled") {
                 console.warn("⚠️ Payment not completed, ignoring.");
                 return res.status(400).json({ error: "Payment not completed" });
             }
@@ -111,4 +111,3 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server error" });
     }
 }
-
