@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             const payload = JSON.stringify(req.body);
             console.log("🔄 Raw Payload:", payload);
             
-            const computedSignature = "sha256=" + crypto.createHmac("sha256", secret).update(payload, "utf8").digest("hex");
+            const computedSignature = "sha256=" + crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
             console.log("🔐 Validating signature: Received:", receivedSignature, "Computed:", computedSignature);
             
             if (receivedSignature !== computedSignature) {
