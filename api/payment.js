@@ -48,8 +48,8 @@ export default async function handler(req, res) {
             const invoiceId = req.body.invoiceId || req.body.data?.invoiceId;
             const status = req.body.status || req.body.data?.status || req.body.type;
             const metadata = req.body.metadata || req.body.data?.metadata || {}; // Extract metadata if available
-            const userId = metadata.userId || null;  // Get userId from metadata
-            const referralCode = metadata.referralCode || null;  // Get referralCode from metadata
+            const userId = metadata.userId || req.body.data?.metadata?.userId || null;  // Get userId from metadata
+            const referralCode = metadata.referralCode || req.body.data?.metadata?.referralCode || null;  // Get referralCode from metadata
 
             console.log("💰 Payment Data:", { invoiceId, status, userId, referralCode });
 
