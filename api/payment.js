@@ -62,7 +62,7 @@ export default async function handler(req, res) {
             console.log("💰 Payment Data:", { invoiceId, status, userId, eventType });
 
             // ✅ Ensure it's an Invoice Settled event
-            if (!["InvoiceSettled", "InvoiceProcessing"].includes(eventType)) {
+            if (!["InvoiceSettled", "InvoiceProcessing", "InvoicePaymentSettled"].includes(eventType)) {
                 console.warn(`⚠️ Ignoring webhook event: ${eventType}`);
                 return res.status(400).json({ error: "Ignoring non-payment event" });
             }
