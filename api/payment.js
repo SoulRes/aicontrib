@@ -56,13 +56,15 @@ export default async function handler(req, res) {
 
             const invoiceId = bodyJson.invoiceId || bodyJson.data?.invoiceId;
             const status = bodyJson.status || bodyJson.data?.status;
-            const userEmail = bodyJson.userEmail || bodyJson.metadata?.userEmail; // 🔹 Ensure userEmail is extracted
+            const metadata = bodyJson.metadata || bodyJson.data?.metadata || {};
+            const userEmail = metadata.userEmail || null; // 🔹 Ensure userEmail is extracted
+            const referralCode = metadata.referralCode || null; // 🔹 Get referralCode
             const eventType = bodyJson.type; // 🔹 Identify event type
 
-            console.log("💰 Payment Data:", { invoiceId, status, userEmail, eventType });
+            console.log("💰 Payment Data:", { invoiceId, status, userEmail, referralCode, eventType });
 
-            // ✅ Ensure it's an Invoice Settled event
-            if (!["InvoiceSettled", "InvoiceProcessing", "complete"].includes(eventType) && status !== "complete") {
+            // ✅ Ensure it's a valid payment event
+            if (!["InvoiceSettled", "InvoicePaymentSettled", "InvoiceProcessing"].includes(eventType) && status !== "complete") {
                 console.warn(`⚠️ Ignoring webhook event: ${eventType}`);
                 return res.status(400).json({ error: "Ignoring non-payment event" });
             }
@@ -81,12 +83,48 @@ export default async function handler(req, res) {
             }
 
             // ✅ Activate User
-            await userDocRef.update({ status: "Activated", activationDate: admin.firestore.FieldValue.serverTimestamp() });
+            await userDocRef.update({
+                status: "Activated",
+                activationDate: admin.firestore.FieldValue.serverTimestamp(),
+            });
             console.log("✅ User Activated:", userEmail);
+
+            // ✅ Process Referral Bonus if referralCode exists
+            if (referralCode) {
+                const referrerSnapshot = await db.collection("users")
+                    .where("referralCode", "==", referralCode)
+                    .limit(1)
+                    .get();
+
+                if (!referrerSnapshot.empty) {
+                    const referrerId = referrerSnapshot.docs[0].id;
+                    console.log("🏆 Referral bonus applied for:", referrerId);
+
+                    // ✅ Update referrer's earnings
+                    await db.collection("users").doc(referrerId).update({
+                        usdt: admin.firestore.FieldValue.increment(150),
+                        referralCount: admin.firestore.FieldValue.increment(1),
+                    });
+
+                    // ✅ Save referred user under referrer
+                    await db.collection("users").doc(referrerId).collection("referrals").doc(userEmail).set({
+                        email: userEmail,
+                        status: "Paid",
+                        bonusEarned: 150,
+                        dateJoined: new Date().toISOString().split("T")[0], // Store only YYYY-MM-DD
+                    });
+
+                    console.log("✅ Referral stored successfully for:", userEmail);
+                } else {
+                    console.warn("⚠️ Invalid referral code:", referralCode);
+                }
+            }
+
             return res.json({ success: true, message: "Payment processed successfully" });
         }
 
         return res.status(400).json({ error: "Not a BTCPay Webhook" });
+
     } catch (error) {
         console.error("🚨 Error processing payment:", error);
         return res.status(500).json({ error: "Server error" });

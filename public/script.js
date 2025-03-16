@@ -766,7 +766,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ Function to store referral code in Firestore
     async function saveReferralCodeToFirebase(referralCode, userEmail) {
         try {
-            const response = await fetch('/api/store-referral', {
+            const response = await fetch('/api/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ referralCode, userEmail }),
