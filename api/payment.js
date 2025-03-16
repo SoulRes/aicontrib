@@ -56,13 +56,13 @@ export default async function handler(req, res) {
 
             const invoiceId = bodyJson.invoiceId || bodyJson.data?.invoiceId;
             const status = bodyJson.status || bodyJson.data?.status;
-            const userEmail = bodyJson.metadata?.userEmail; // 🔹 Store userEmail inside "metadata" in BTCPay
+            const userEmail = bodyJson.userEmail || bodyJson.metadata?.userEmail; // 🔹 Ensure userEmail is extracted
             const eventType = bodyJson.type; // 🔹 Identify event type
 
             console.log("💰 Payment Data:", { invoiceId, status, userEmail, eventType });
 
             // ✅ Ensure it's an Invoice Settled event
-            if (!["InvoiceSettled", "InvoiceProcessing", "InvoicePaymentSettled"].includes(eventType)) {
+            if (!["InvoiceSettled", "InvoiceProcessing", "complete"].includes(eventType) && status !== "complete") {
                 console.warn(`⚠️ Ignoring webhook event: ${eventType}`);
                 return res.status(400).json({ error: "Ignoring non-payment event" });
             }
@@ -92,4 +92,3 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server error" });
     }
 }
-
