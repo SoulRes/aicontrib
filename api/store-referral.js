@@ -1,5 +1,5 @@
 app.post('/api/store-referral', async (req, res) => {
-    const { referralCode, userId } = req.body;
+    const { referralCode, userEmail } = req.body;
 
     try {
         // ✅ Find the referrer using the referral code
@@ -16,13 +16,13 @@ app.post('/api/store-referral', async (req, res) => {
         const referrerId = referrerDoc.id;
 
         // ✅ Store referral info in referred user's document
-        await db.collection('users').doc(userId).update({
+        await db.collection('users').doc(userEmail).update({
             referredBy: referralCode,
         });
 
         // ✅ Add referred user under the referrer's referrals
-        await db.collection('users').doc(referrerId).collection('referrals').doc(userId).set({
-            email: userId, // Assuming userId is email
+        await db.collection('users').doc(referrerId).collection('referrals').doc(userEmail).set({
+            email: userEmail, // Assuming userEmail is email
             status: 'Pending',
             bonusEarned: 0,
             dateJoined: new Date().toISOString().split('T')[0], // Store only YYYY-MM-DD
