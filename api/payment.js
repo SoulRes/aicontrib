@@ -56,10 +56,13 @@ export default async function handler(req, res) {
 
             const invoiceId = bodyJson.invoiceId || bodyJson.data?.invoiceId;
             const status = bodyJson.status || bodyJson.data?.status;
-            const metadata = bodyJson.metadata || bodyJson.data?.metadata || {};
-            const userEmail = metadata.userEmail || null; // 🔹 Ensure userEmail is extracted
-            const referralCode = metadata.referralCode || null; // 🔹 Get referralCode
-            const eventType = bodyJson.type; // 🔹 Identify event type
+            const metadata = bodyJson.metadata || bodyJson.data?.metadata || {}; // ✅ Ensure metadata exists
+
+            console.log("🔎 Metadata Debug:", JSON.stringify(metadata, null, 2)); // 🔍 Log metadata to debug issues
+
+            const userEmail = metadata.userEmail || metadata.buyerEmail || null; // ✅ Extract email correctly
+            const referralCode = metadata.referralCode || null; 
+            const eventType = bodyJson.type;
 
             console.log("💰 Payment Data:", { invoiceId, status, userEmail, referralCode, eventType });
 
