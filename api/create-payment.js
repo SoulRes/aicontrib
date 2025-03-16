@@ -7,13 +7,19 @@ export default async (req, res) => {
 
   const { price, currency, orderId, userEmail, referralCode } = req.body;
 
-  console.log('🔄 Creating payment with:', {
+  console.log('🔄 Received request to create payment with:', {
     price,
     currency,
     orderId,
-    userEmail,
+    userEmail: userEmail || '❌ Undefined',
     referralCode: referralCode || 'No referral',
   });
+
+  // ✅ Ensure `userEmail` is present
+  if (!userEmail) {
+    console.error('🚨 Missing userEmail in request body!');
+    return res.status(400).json({ error: 'Missing userEmail' });
+  }
 
   try {
     const response = await fetch(`${process.env.BTCPAY_URL}/stores/${process.env.BTCPAY_STORE_ID}/invoices`, {
@@ -28,7 +34,7 @@ export default async (req, res) => {
         metadata: {
           orderId,
           userEmail, // ✅ Ensures userEmail is correctly sent to webhook
-          ...(referralCode ? { referralCode } : {}), // ✅ Only send referralCode if it exists
+          referralCode: referralCode || null, // ✅ If no referral, set to null
           itemDesc: "My Product"
         },
         checkout: {
@@ -58,4 +64,3 @@ export default async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
