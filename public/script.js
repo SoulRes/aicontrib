@@ -512,32 +512,81 @@ document.addEventListener("DOMContentLoaded", function () {
         catPhoto.src = `path/to/cat-stage-${stage}.png`;
     }
 
-    // Event listener for Buy Button
+    // ✅ Event listener for Buy Button
     document.getElementById('buy-btn').addEventListener('click', async function () {
-        console.log('Buy button clicked!');
+        console.log('🛒 Buy button clicked!');
+        
         const paymentMethod = document.getElementById('payment-options').value;
-        console.log('Selected payment method:', paymentMethod);
+        console.log('💳 Selected payment method:', paymentMethod);
+        
         const referralCode = document.getElementById('referral-code').value.trim();
-        console.log('Entered referral code:', referralCode);
+        console.log('🏆 Entered referral code:', referralCode);
+
+        // ✅ Ensure user is logged in before proceeding
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            alert('⚠️ You must be logged in to proceed with the payment.');
+            return;
+        }
+
+        const userEmail = user.email; // ✅ Fetch user email from Firebase Auth
+        console.log('📧 User email:', userEmail);
 
         if (!paymentMethod) {
-            alert('Please select a payment method.');
+            alert('⚠️ Please select a payment method.');
             return;
         }
 
         try {
-            // Validate referral code before processing payment
+            // ✅ Validate referral code before processing payment
             if (referralCode && !(await validateReferralCode(referralCode))) {
-                alert('Invalid referral code. Please check and try again.');
+                alert('❌ Invalid referral code. Please check and try again.');
                 return;
             }
 
-            await processPayment(1, 'USD', paymentMethod, `order-123-${paymentMethod}`, referralCode);
-            console.log('Payment processing initiated.');
+            // ✅ Generate a unique orderId using timestamp + random number
+            const orderId = `order-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+            await processPayment(1, 'USD', paymentMethod, orderId, referralCode, userEmail);
+            console.log('✅ Payment processing initiated.');
         } catch (error) {
-            console.error('Error during payment:', error);
+            console.error('🚨 Error during payment:', error);
         }
     });
+
+    // ✅ Function to process payment
+    async function processPayment(priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userEmail) {
+        console.log("🛠 Processing payment:", { priceAmount, priceCurrency, paymentMethod, orderId, referralCode, userEmail });
+
+        try {
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    price: priceAmount, 
+                    currency: priceCurrency, 
+                    paymentMethod, 
+                    orderId, 
+                    referralCode, 
+                    userEmail 
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.checkoutLink) {
+                console.log("✅ Redirecting to:", data.checkoutLink);
+
+                // ✅ Redirect user to BTCPay checkout
+                window.location.href = data.checkoutLink;
+            } else {
+                console.error("❌ Payment error:", data.error || "No checkout link.");
+                alert("Payment failed.");
+            }
+        } catch (error) {
+            console.error("🚨 Error in processPayment:", error);
+        }
+    }
 
     // Referral Code Logic
     const checkReferralButton = document.getElementById("check-referral-btn");
