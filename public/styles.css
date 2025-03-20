@@ -186,7 +186,7 @@ header {
     text-align: center;
     box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.2);
     width: 400px; /* Increased width */
-    height: 180px; /* Increased height */
+    height: 200px; /* Increased height */
 }
 
 .earnings-frame h3 {
