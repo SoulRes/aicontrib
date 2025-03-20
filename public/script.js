@@ -157,14 +157,32 @@ document.addEventListener("DOMContentLoaded", function () {
     // Call the function to fetch the rate on page load
     fetchRate(); 
 
-    let earnings = 1000000; // Start from $1,000,000
+    const earningsElement = document.getElementById("earnings-counter");
+    const earningsPerSecond = 1; // Earnings increase per second
 
+    // Load stored values or initialize
+    let storedEarnings = localStorage.getItem("totalEarnings");
+    let lastTimestamp = localStorage.getItem("lastUpdate");
+
+    let currentEarnings = storedEarnings ? parseInt(storedEarnings) : 1000000;
+    let lastUpdate = lastTimestamp ? parseInt(lastTimestamp) : Date.now();
+
+    // Calculate time difference and update earnings
+    let timeElapsed = Math.floor((Date.now() - lastUpdate) / 1000);
+    currentEarnings += timeElapsed * earningsPerSecond;
+
+    // Update UI
     function updateEarnings() {
-        earnings += 1; // Increase by $1 per second
-        document.getElementById("earnings-counter").textContent = `$${earnings.toLocaleString()}`;
+        currentEarnings += earningsPerSecond;
+        earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
+        
+        // Save to localStorage
+        localStorage.setItem("totalEarnings", currentEarnings);
+        localStorage.setItem("lastUpdate", Date.now());
     }
 
-    // Update every second
+    // Initialize counter
+    earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
     setInterval(updateEarnings, 1000);
     
     // Firebase Authentication - Signup
