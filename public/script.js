@@ -159,10 +159,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const earningsElement = document.getElementById("earnings-counter");
     const earningsPerSecond = 1; // Change this value if needed
-    const startTimestamp = new Date("March 15, 2024 00:00:00 UTC").getTime() / 5000;
+    const startTimestamp = new Date("March 15, 2024 00:00:00 UTC").getTime() / 10000;
 
     function updateEarnings() {
-        const currentTime = Math.floor(Date.now() / 5000);
+        const currentTime = Math.floor(Date.now() / 10000);
         const timeElapsed = currentTime - startTimestamp;
         const currentEarnings = timeElapsed * earningsPerSecond;
 
