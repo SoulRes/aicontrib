@@ -1,3 +1,9 @@
+
+import { inject } from '@vercel/analytics';
+
+// Inject Vercel Analytics tracking
+inject();
+
 // Function to switch between sections (make it globally available)
 function switchSection(sectionId) {
     const sections = document.querySelectorAll('.content-section');
@@ -1334,9 +1340,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
-
-import { inject } from '@vercel/analytics';
-
-// Inject Vercel Analytics tracking
-inject();
-
