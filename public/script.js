@@ -159,30 +159,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const earningsElement = document.getElementById("earnings-counter");
     const earningsPerSecond = 1; // Earnings increase per second
+    const startEarnings = 1000000;
+    const startTimestamp = 1710000000; // Replace with actual start time
 
-    // Load stored values or initialize
-    let storedEarnings = localStorage.getItem("totalEarnings");
-    let lastTimestamp = localStorage.getItem("lastUpdate");
-
-    let currentEarnings = storedEarnings ? parseInt(storedEarnings) : 1000000;
-    let lastUpdate = lastTimestamp ? parseInt(lastTimestamp) : Date.now();
-
-    // Calculate time difference and update earnings
-    let timeElapsed = Math.floor((Date.now() - lastUpdate) / 1000);
-    currentEarnings += timeElapsed * earningsPerSecond;
-
-    // Update UI
-    function updateEarnings() {
-        currentEarnings += earningsPerSecond;
-        earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
-        
-        // Save to localStorage
-        localStorage.setItem("totalEarnings", currentEarnings);
-        localStorage.setItem("lastUpdate", Date.now());
+    async function getOnlineTime() {
+        try {
+            const response = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC");
+            const data = await response.json();
+            return Math.floor(data.unixtime);
+        } catch (error) {
+            console.error("Failed to fetch time:", error);
+            return Math.floor(Date.now() / 1000);
+        }
     }
 
-    // Initialize counter
-    earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
+    async function updateEarnings() {
+        const currentTime = await getOnlineTime();
+        const timeElapsed = currentTime - startTimestamp;
+        const currentEarnings = startEarnings + (timeElapsed * earningsPerSecond);
+
+        earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
+    }
+
+    await updateEarnings();
     setInterval(updateEarnings, 1000);
     
     // Firebase Authentication - Signup
