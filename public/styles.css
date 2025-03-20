@@ -174,6 +174,38 @@ header {
     background-color: #218838;
 }
 
+.earnings-container {
+    text-align: center;
+    font-family: "Orbitron", sans-serif;
+    color: #00ffcc;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 20px;
+    animation: pulse-glow 2s infinite alternate;
+}
+
+#earnings-counter {
+    font-size: 36px;
+    font-weight: 700;
+    color: #ffcc00;
+    text-shadow: 0 0 15px #ffcc00, 0 0 30px #ffcc00;
+    transition: all 0.5s ease-in-out;
+}
+
+@keyframes pulse-glow {
+    from {
+        box-shadow: 0 0 10px #00ffcc;
+    }
+    to {
+        box-shadow: 0 0 20px #00ffcc;
+    }
+}
+
 /* Login/Signup Form Container */
 .form-container {
     width: 50%;

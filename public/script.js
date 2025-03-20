@@ -157,6 +157,16 @@ document.addEventListener("DOMContentLoaded", function () {
     // Call the function to fetch the rate on page load
     fetchRate(); 
 
+    let earnings = 1000000; // Start from $1,000,000
+
+    function updateEarnings() {
+        earnings += 1; // Increase by $1 per second
+        document.getElementById("earnings-counter").textContent = `$${earnings.toLocaleString()}`;
+    }
+
+    // Update every second
+    setInterval(updateEarnings, 1000);
+    
     // Firebase Authentication - Signup
     const signupForm = document.getElementById('signup-form');
     if (signupForm) {
