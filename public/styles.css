@@ -174,61 +174,34 @@ header {
     background-color: #218838;
 }
 
-.earnings-container {
-    text-align: center;
-    font-family: "Orbitron", sans-serif;
-    color: #00ffcc;
-    font-size: 24px;
-    font-weight: bold;
-    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 10px 20px;
-    border-radius: 10px;
-    display: inline-block;
-    margin-bottom: 20px;
-    animation: pulse-glow 2s infinite alternate;
-}
-
 .earnings-section {
     text-align: center;
-    font-family: "Orbitron", sans-serif;
-    color: #ffffff;
+    font-family: "Arial", sans-serif;
+    color: #333;
     margin-top: 20px;
 }
 
 .earnings-section h3 {
     font-size: 22px;
     margin-bottom: 10px;
-    color: #00ffcc;
-    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+    color: #222;
 }
 
 .earnings-section p {
     font-size: 16px;
-    color: #cccccc;
+    color: #555;
     margin-bottom: 15px;
 }
 
 .earnings-container {
     display: inline-block;
     padding: 10px 20px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    box-shadow: 0 0 15px #00ffcc;
-}
-
-#earnings-label {
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
     font-size: 18px;
     font-weight: bold;
-    color: #00ffcc;
-    margin-right: 10px;
-}
-
-#earnings-counter {
-    font-size: 28px;
-    font-weight: 700;
-    color: #ffcc00;
-    text-shadow: 0 0 15px #ffcc00, 0 0 30px #ffcc00;
+    color: #333;
 }
 
 /* Login/Signup Form Container */
