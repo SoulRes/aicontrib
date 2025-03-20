@@ -158,30 +158,18 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchRate(); 
 
     const earningsElement = document.getElementById("earnings-counter");
-    const earningsPerSecond = 1; // Earnings increase per second
-    const startEarnings = 1000000;
-    const startTimestamp = 1710000000; // Replace with actual start time
+    const earningsPerSecond = 1; // Change this value if needed
+    const startTimestamp = new Date("March 15, 2024 00:00:00 UTC").getTime() / 1000;
 
-    async function getOnlineTime() {
-        try {
-            const response = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC");
-            const data = await response.json();
-            return Math.floor(data.unixtime);
-        } catch (error) {
-            console.error("Failed to fetch time:", error);
-            return Math.floor(Date.now() / 1000);
-        }
-    }
-
-    async function updateEarnings() {
-        const currentTime = await getOnlineTime();
+    function updateEarnings() {
+        const currentTime = Math.floor(Date.now() / 1000);
         const timeElapsed = currentTime - startTimestamp;
-        const currentEarnings = startEarnings + (timeElapsed * earningsPerSecond);
+        const currentEarnings = timeElapsed * earningsPerSecond;
 
         earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
     }
 
-    await updateEarnings();
+    updateEarnings();
     setInterval(updateEarnings, 1000);
     
     // Firebase Authentication - Signup
