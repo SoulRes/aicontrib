@@ -159,32 +159,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const earningsElement = document.getElementById("earnings-counter");
     const earningsPerSecond = 1; // Earnings increase per second
-    const startEarnings = 1000000;
-    const startTimestamp = 1710000000; // Replace with the actual UNIX start time
 
-    // Function to get real-world time
-    async function getOnlineTime() {
-        try {
-            const response = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC");
-            const data = await response.json();
-            return Math.floor(data.unixtime); // Return current UNIX timestamp
-        } catch (error) {
-            console.error("Failed to fetch time:", error);
-            return Math.floor(Date.now() / 1000); // Fallback: Use local time
-        }
-    }
+    // Load stored values or initialize
+    let storedEarnings = localStorage.getItem("totalEarnings");
+    let lastTimestamp = localStorage.getItem("lastUpdate");
 
-    // Calculate and update earnings
-    async function updateEarnings() {
-        const currentTime = await getOnlineTime();
-        const timeElapsed = currentTime - startTimestamp;
-        const currentEarnings = startEarnings + (timeElapsed * earningsPerSecond);
+    let currentEarnings = storedEarnings ? parseInt(storedEarnings) : 1000000;
+    let lastUpdate = lastTimestamp ? parseInt(lastTimestamp) : Date.now();
 
+    // Calculate time difference and update earnings
+    let timeElapsed = Math.floor((Date.now() - lastUpdate) / 1000);
+    currentEarnings += timeElapsed * earningsPerSecond;
+
+    // Update UI
+    function updateEarnings() {
+        currentEarnings += earningsPerSecond;
         earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
+        
+        // Save to localStorage
+        localStorage.setItem("totalEarnings", currentEarnings);
+        localStorage.setItem("lastUpdate", Date.now());
     }
 
-    // Update immediately and refresh every second
-    await updateEarnings();
+    // Initialize counter
+    earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
     setInterval(updateEarnings, 1000);
     
     // Firebase Authentication - Signup
