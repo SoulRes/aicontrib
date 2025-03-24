@@ -96,6 +96,22 @@ document.addEventListener("DOMContentLoaded", function () {
     
     const rateInput = document.getElementById('rate-amount');
 
+
+    const earningsElement = document.getElementById("earnings-counter");
+    const earningsPerSecond = 1; // Change this value if needed
+    const startTimestamp = new Date("March 15, 2024 00:00:00 UTC").getTime() / 10000;
+
+    function updateEarnings() {
+        const currentTime = Math.floor(Date.now() / 10000);
+        const timeElapsed = currentTime - startTimestamp;
+        const currentEarnings = timeElapsed * earningsPerSecond;
+
+        earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
+    }
+
+    updateEarnings();
+    setInterval(updateEarnings, 1000);
+    
     // Contact Support - Store message in Firebase
     const sendMessageBtn = document.getElementById('send-message-btn');
     if (sendMessageBtn) {
@@ -155,22 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Call the function to fetch the rate on page load
-    fetchRate(); 
-
-    const earningsElement = document.getElementById("earnings-counter");
-    const earningsPerSecond = 1; // Change this value if needed
-    const startTimestamp = new Date("March 15, 2024 00:00:00 UTC").getTime() / 10000;
-
-    function updateEarnings() {
-        const currentTime = Math.floor(Date.now() / 10000);
-        const timeElapsed = currentTime - startTimestamp;
-        const currentEarnings = timeElapsed * earningsPerSecond;
-
-        earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
-    }
-
-    updateEarnings();
-    setInterval(updateEarnings, 1000);
+    fetchRate();
     
     // Firebase Authentication - Signup
     const signupForm = document.getElementById('signup-form');
