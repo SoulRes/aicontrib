@@ -178,7 +178,7 @@ header {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    top: 70%;
+    top: 75%;
     background: rgba(255, 255, 255, 0.95); /* Light background */
     padding: 30px; /* Bigger padding */
     border-radius: 12px;
