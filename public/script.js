@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const currentEarnings = timeElapsed * earningsPerSecond;
 
         if (earningsElement) {
-            earningsElement.textContent = `${currentEarnings.toLocaleString()}`;
+            earningsElement.textContent = `$${currentEarnings.toLocaleString()}`;
         } else {
             console.error("❌ Earnings counter element not found in the DOM.");
         }
