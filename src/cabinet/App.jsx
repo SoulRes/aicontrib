@@ -8,8 +8,8 @@ import Download from "./pages/Download";
 import Exchange from "./pages/Exchange";
 import Send from "./pages/Send";
 import Support from "./pages/Support";
-import Success from "./cabinet/pages/Success";
-import Failed from "./cabinet/pages/Failed";
+import Success from "./pages/Success";
+import Failed from "./pages/Failed";
 import "./styles.css";
 
 function CabinetApp() {
