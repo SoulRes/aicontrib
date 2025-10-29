@@ -8,6 +8,8 @@ import Download from "./pages/Download";
 import Exchange from "./pages/Exchange";
 import Send from "./pages/Send";
 import Support from "./pages/Support";
+import Success from "./cabinet/pages/Success";
+import Failed from "./cabinet/pages/Failed";
 import "./styles.css";
 
 function CabinetApp() {
@@ -28,6 +30,8 @@ function CabinetApp() {
             <Route path="exchange" element={<Exchange />} />
             <Route path="send" element={<Send />} />
             <Route path="support" element={<Support />} />
+            <Route path="/success" element={<Success />} />
+            <Route path="/failed" element={<Failed />} />
           </Routes>
         </div>
       </div>

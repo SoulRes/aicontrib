@@ -1,22 +1,20 @@
+// src/cabinet/pages/Buy.jsx
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 function Buy() {
   const [loading, setLoading] = useState(false);
-  const [price, setPrice] = useState(500);
+  const [price, setPrice] = useState(2);
   const [referralCode, setReferralCode] = useState("");
   const [referrerValid, setReferrerValid] = useState(null);
   const [buyerEmail, setBuyerEmail] = useState(null);
 
-  // ✅ Get logged-in user email from Firebase Auth
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setBuyerEmail(user.email);
-      }
+      if (user) setBuyerEmail(user.email);
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   const checkReferral = async () => {
@@ -26,19 +24,18 @@ function Buy() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/check-referral", {
+      const res = await fetch("/api/check-referral", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referralCode, buyerEmail }),
       });
-      const data = await res.json();
 
+      const data = await res.json();
       if (data.valid) {
         setReferrerValid(true);
-        setPrice(450);
+        setPrice(1); // $50 discount
       } else {
         setReferrerValid(false);
-        setPrice(500);
         alert(data.message || "Invalid referral code");
       }
     } catch (err) {
@@ -47,24 +44,21 @@ function Buy() {
     }
   };
 
-  // ✅ Create invoice
   const handleBuy = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/nowpayments", {
+      const res = await fetch("/api/nowpayments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: price,
-          currency: "usd",
-          referralCode,
+          price_amount: price,
+          price_currency: "usd",
+          pay_currency: "usdttrc20",
           order_description: `AIcontrib License|${buyerEmail}|${referralCode || ""}`,
         }),
       });
 
       const data = await res.json();
-      console.log("NOWPayments response:", data);
-
       if (data.invoice_url) {
         window.location.href = data.invoice_url;
       } else {
@@ -83,14 +77,11 @@ function Buy() {
       <h1 className="text-3xl font-bold text-green-400 mb-6">Buy License</h1>
 
       <div className="bg-black border border-gray-800 p-6 rounded-xl shadow-lg mb-8">
-        <p className="text-gray-300 mb-4">
-          Unlock full access by purchasing the license.
-        </p>
+        <p className="text-gray-300 mb-4">Unlock full access by purchasing the license.</p>
 
-        {/* Referral input */}
         <div className="mb-4">
           <label className="block mb-2 text-sm text-gray-400">
-            Have a referral code? By using referral code you get $50 discount!
+            Have a referral code? Use it to get $50 discount!
           </label>
           <div className="flex gap-2">
             <input
@@ -102,27 +93,20 @@ function Buy() {
             />
             <button
               onClick={checkReferral}
-              className="px-4 py-2 bg-green-500 hover:bg-blue-600 rounded-lg text-black"
+              className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-black"
             >
               Check
             </button>
           </div>
-          {referrerValid === true && (
+          {referrerValid && (
             <p className="mt-2 text-green-400 text-sm">
-              ✅ Referral code valid! You get $50 discount. Total: ${price}
-            </p>
-          )}
-          {referrerValid === false && (
-            <p className="mt-2 text-red-400 text-sm">
-              ❌ {referralCode ? "Invalid or unusable referral code." : "Invalid referral code."}
+              ✅ Referral valid! New total: ${price}
             </p>
           )}
         </div>
 
-        {/* Price */}
         <p className="text-xl font-bold text-green-400 mb-6">${price}</p>
 
-        {/* Buy button */}
         <button
           onClick={handleBuy}
           disabled={loading}

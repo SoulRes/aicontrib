@@ -24,7 +24,6 @@ function AuthForm({ onSuccess }) {
     try {
       if (!isLogin && password !== confirmPassword) {
         setError("Passwords do not match.");
-        setLoading(false);
         return;
       }
 
@@ -35,11 +34,34 @@ function AuthForm({ onSuccess }) {
       } else {
         await signup(email, password);
         setMessage(
-          "✅ Verification email sent! Please check your inbox and verify your email before logging in."
+          "✅ Verification email sent! Please check your inbox (and spam folder) before logging in."
         );
       }
     } catch (err) {
-      setError(err.message);
+      console.error("🔥 Auth error:", err);
+
+      // Extract better error message
+      const rawMsg = err.message || "";
+      let msg = "Login failed.";
+
+      if (
+        rawMsg.includes("verify your email") ||
+        rawMsg.includes("not verified") ||
+        rawMsg.includes("Please verify")
+      ) {
+        msg =
+          "⚠️ Please verify your email before logging in. Check your inbox or spam folder.";
+      } else if (rawMsg.includes("already registered")) {
+        msg = "This email is already registered. Try logging in instead.";
+      } else if (rawMsg.includes("password")) {
+        msg = "Incorrect email or password.";
+      } else if (rawMsg.includes("not found")) {
+        msg = "No account found with this email.";
+      } else if (rawMsg.includes("too-many-requests")) {
+        msg = "Too many attempts. Please wait a moment before retrying.";
+      }
+
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -51,8 +73,16 @@ function AuthForm({ onSuccess }) {
         {isLogin ? "Login" : "Sign Up"}
       </h2>
 
-      {error && <p className="text-red-400 text-sm mb-2 text-center">{error}</p>}
-      {message && <p className="text-green-400 text-sm mb-2 text-center">{message}</p>}
+      {error && (
+        <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/30 p-2 rounded-md">
+          {error}
+        </p>
+      )}
+      {message && (
+        <p className="text-green-400 text-sm text-center bg-green-500/10 border border-green-500/30 p-2 rounded-md">
+          {message}
+        </p>
+      )}
 
       {/* Email */}
       <input
@@ -83,7 +113,7 @@ function AuthForm({ onSuccess }) {
         </button>
       </div>
 
-      {/* Confirm password */}
+      {/* Confirm password (only for Sign Up) */}
       {!isLogin && (
         <div className="relative">
           <input
@@ -97,7 +127,7 @@ function AuthForm({ onSuccess }) {
         </div>
       )}
 
-      {/* Submit */}
+      {/* Submit button */}
       <button
         type="submit"
         disabled={loading}
@@ -112,7 +142,7 @@ function AuthForm({ onSuccess }) {
           : "Sign Up"}
       </button>
 
-      {/* Switch */}
+      {/* Switch form */}
       <p
         className="mt-4 text-sm text-gray-400 cursor-pointer hover:text-green-400 text-center"
         onClick={() => {

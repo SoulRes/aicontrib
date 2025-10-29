@@ -1,82 +1,77 @@
 import admin from "firebase-admin";
-import express from "express";
+import crypto from "crypto";
 
-const router = express.Router();
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
+}
 const db = admin.firestore();
-
-router.post("/", async (req, res) => {
-  const paymentData = req.body;
-  console.log("🔄 NOWPayments webhook received:", paymentData);
-
-  if (paymentData.payment_status === "finished") {
-    try {
-      // Expecting order_description like: "AIcontrib License|buyerEmail|referralCode"
-      const [_, buyerEmail, referralCode] = paymentData.order_description.split("|");
-
-      // 🔹 Update buyer
-      const buyerRef = db.collection("users").doc(buyerEmail);
-      await buyerRef.update({
-        status: "Activated",
-        referredBy: referralCode || null,
-      });
-
-      // 🔹 Update referrer if referralCode exists
-      if (referralCode) {
-        const referrerSnap = await db
-          .collection("users")
-          .where("referralCode", "==", referralCode)
-          .get();
-
-        if (!referrerSnap.empty) {
-          referrerSnap.forEach(async (doc) => {
-            const referrerRef = db.collection("users").doc(doc.id);
-            const refData = doc.data();
-
-            await referrerRef.update({
-              usdt: (refData.usdt || 0) + 150,
-              referralCount: (refData.referralCount || 0) + 1,
-              referrals: admin.firestore.FieldValue.arrayUnion(buyerEmail),
-            });
-          });
-        }
-      }
-
-      console.log("✅ Referral + buyer updated successfully.");
-    } catch (err) {
-      console.error("🔥 Error updating referral flow:", err);
-    }
-  }
-
-  res.status(200).send("Webhook received");
-});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const signature = req.headers["x-nowpayments-sig"];
+  const secretKey = process.env.NOWPAYMENTS_API_KEY;
   const rawBody = JSON.stringify(req.body);
-  const apiKey = process.env.NOWPAYMENTS_API_KEY;
-  const receivedSignature = req.headers["x-nowpayments-sig"] || "";
 
-  // Verify webhook signature
-  const crypto = require("crypto");
-  const calculatedSignature = crypto
-    .createHmac("sha512", apiKey)
-    .update(rawBody)
-    .digest("hex");
-
-  if (receivedSignature !== calculatedSignature) {
-    console.log("Invalid webhook signature!");
-    return res.status(400).send("Invalid signature");
+  const expectedSig = crypto.createHmac("sha512", secretKey).update(rawBody).digest("hex");
+  if (expectedSig !== signature) {
+    console.error("⚠️ Invalid NOWPayments signature!");
+    return res.status(400).json({ error: "Invalid signature" });
   }
 
-  const { payment_status, order_id, amount, pay_currency } = req.body;
+  const { payment_status, order_description } = req.body;
 
   if (payment_status === "finished") {
-    console.log(`Payment finished for order ${order_id}: ${amount} ${pay_currency}`);
-    // TODO: Update your database or unlock the license for the user
+    const [_, buyerEmail, referralCode] = order_description.split("|");
+    console.log(`✅ Payment confirmed for ${buyerEmail} (ref: ${referralCode})`);
+
+    try {
+      // 🔹 Update buyer status
+      const buyerRef = db.collection("users").doc(buyerEmail);
+      await buyerRef.update({ status: "Activated" });
+
+      if (referralCode) {
+        // 🔹 Find referrer by referral code
+        const refSnap = await db
+          .collection("users")
+          .where("referralCode", "==", referralCode)
+          .limit(1)
+          .get();
+
+        if (!refSnap.empty) {
+          const refDoc = refSnap.docs[0];
+          const referrerEmail = refDoc.id;
+          const referrerData = refDoc.data();
+
+          // ✅ Add referral record
+          await db.collection("referrals").doc(referrerEmail).collection("records").add({
+            referred: buyerEmail,
+            bonusEarned: 150,
+            status: "Paid",
+            timestamp: admin.firestore.Timestamp.now(),
+          });
+
+          // ✅ Update referrer stats
+          await refDoc.ref.update({
+            usdt: (referrerData.usdt || 0) + 150,
+            referralCount: (referrerData.referralCount || 0) + 1,
+          });
+
+          // ✅ Mark buyer’s referrer
+          await buyerRef.update({ referredBy: referrerEmail });
+        }
+      }
+
+      console.log("🎉 Buyer + referrer successfully updated!");
+    } catch (err) {
+      console.error("🔥 Webhook error:", err);
+      return res.status(500).json({ error: "Webhook processing failed" });
+    }
   }
 
-  res.status(200).send("OK");
+  return res.status(200).send("OK");
 }
