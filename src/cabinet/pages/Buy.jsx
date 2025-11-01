@@ -2,6 +2,11 @@
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+const API_BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000"
+    : "https://aicontrib.com";
+
 function Buy() {
   const [loading, setLoading] = useState(false);
   const [price, setPrice] = useState(2);
@@ -24,7 +29,7 @@ function Buy() {
     }
 
     try {
-      const res = await fetch("/api/check-referral", {
+      const res = await fetch(`${API_BASE_URL}/api/check-referral`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referralCode, buyerEmail }),
@@ -47,7 +52,7 @@ function Buy() {
   const handleBuy = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/nowpayments", {
+      const res = await fetch(`${API_BASE_URL}/api/nowpayments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
