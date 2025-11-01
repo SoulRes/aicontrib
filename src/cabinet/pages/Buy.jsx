@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 const API_BASE_URL =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
-    : "https://aicontrib.com";
+    : "https://www.aicontrib.com";
 
 function Buy() {
   const [loading, setLoading] = useState(false);
