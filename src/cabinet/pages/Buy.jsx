@@ -24,7 +24,7 @@ function Buy() {
     }
 
     try {
-      const res = await fetch("https://www.aicontrib.com/api/check-referral", {
+      const res = await fetch("/api/check-referral", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referralCode, buyerEmail }),
