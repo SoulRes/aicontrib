@@ -3,9 +3,9 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 // ✅ Auto-detect environment (local or deployed)
 const API_BASE_URL =
-  window.location.hostname === "localhost"
+  process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
-    : "https://www.aicontrib.com";
+    : "https://aicontrib-backend.vercel.app";
 
 function Buy() {
   const [loading, setLoading] = useState(false);
