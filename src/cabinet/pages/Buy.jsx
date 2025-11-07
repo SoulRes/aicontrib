@@ -9,7 +9,7 @@ const API_BASE_URL =
 
 function Buy() {
   const [loading, setLoading] = useState(false);
-  const [price, setPrice] = useState(10);
+  const [price, setPrice] = useState(11);
   const [referralCode, setReferralCode] = useState("");
   const [referrerValid, setReferrerValid] = useState(null);
   const [buyerEmail, setBuyerEmail] = useState(null);
@@ -55,7 +55,7 @@ function Buy() {
 
       if (data.valid) {
         setReferrerValid(true);
-        setPrice(9); // discounted price
+        setPrice(10); // discounted price
         setStatusMsg("✅ Referral valid! Discount applied.");
       } else {
         setReferrerValid(false);
