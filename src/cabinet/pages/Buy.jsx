@@ -85,7 +85,7 @@ function Buy() {
         body: JSON.stringify({
           price_amount: price,
           price_currency: "usd",
-          pay_currency: selectedCurrency,
+          pay_currency: "usdttrc20",
           order_description: `AIcontrib License|${buyerEmail}|${referralCode || ""}`,
         }),
       });
