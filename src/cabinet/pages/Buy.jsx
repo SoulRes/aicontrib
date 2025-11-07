@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-// ✅ Auto-detect environment (local or deployed)
+// ✅ Auto-detect backend (local or deployed)
 const API_BASE_URL =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
@@ -14,8 +14,9 @@ function Buy() {
   const [referrerValid, setReferrerValid] = useState(null);
   const [buyerEmail, setBuyerEmail] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("usdttrc20"); // 💰 default crypto
 
-  // ✅ Get user email from Firebase Auth
+  // ✅ Get buyer email from Firebase
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -55,8 +56,8 @@ function Buy() {
 
       if (data.valid) {
         setReferrerValid(true);
-        setPrice(10); // discounted price
-        setStatusMsg("✅ Referral valid! Discount applied.");
+        setPrice(450); // 💰 apply $50 discount
+        setStatusMsg("✅ Referral valid! $50 discount applied.");
       } else {
         setReferrerValid(false);
         setStatusMsg(data.message || "❌ Invalid referral code.");
@@ -68,7 +69,7 @@ function Buy() {
     }
   };
 
-  // ✅ Handle payment creation
+  // ✅ Handle payment
   const handleBuy = async () => {
     if (!buyerEmail) {
       alert("Please log in to make a purchase.");
@@ -85,7 +86,7 @@ function Buy() {
         body: JSON.stringify({
           price_amount: price,
           price_currency: "usd",
-          pay_currency: "usdttrc20",
+          pay_currency: selectedCurrency, // ✅ dynamic crypto
           order_description: `AIcontrib License|${buyerEmail}|${referralCode || ""}`,
         }),
       });
@@ -120,7 +121,7 @@ function Buy() {
           Unlock full access by purchasing the license.
         </p>
 
-        {/* Referral input */}
+        {/* Referral Code */}
         <div className="mb-4">
           <label className="block mb-2 text-sm text-gray-400">
             Have a referral code? Use it to get a $50 discount!
@@ -141,7 +142,6 @@ function Buy() {
               {loading ? "Checking..." : "Check"}
             </button>
           </div>
-
           {statusMsg && (
             <p
               className={`mt-2 text-sm ${
@@ -153,10 +153,29 @@ function Buy() {
           )}
         </div>
 
+        {/* Currency Selector */}
+        <div className="mb-4">
+          <label className="block mb-2 text-sm text-gray-400">
+            Choose your payment currency:
+          </label>
+          <select
+            value={selectedCurrency}
+            onChange={(e) => setSelectedCurrency(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-gray-700 bg-gray-900 text-white focus:outline-none"
+          >
+            <option value="usdttrc20">USDT (TRC20)</option>
+            <option value="btc">Bitcoin (BTC)</option>
+            <option value="eth">Ethereum (ETH)</option>
+            <option value="ltc">Litecoin (LTC)</option>
+            <option value="doge">Dogecoin (DOGE)</option>
+            <option value="trx">Tron (TRX)</option>
+          </select>
+        </div>
+
         {/* Price */}
         <p className="text-xl font-bold text-green-400 mb-6">${price}</p>
 
-        {/* Buy button */}
+        {/* Buy Button */}
         <button
           onClick={handleBuy}
           disabled={loading}
