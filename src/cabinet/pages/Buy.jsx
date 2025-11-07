@@ -9,7 +9,7 @@ const API_BASE_URL =
 
 function Buy() {
   const [loading, setLoading] = useState(false);
-  const [price, setPrice] = useState(11);
+  const [price, setPrice] = useState(500);
   const [referralCode, setReferralCode] = useState("");
   const [referrerValid, setReferrerValid] = useState(null);
   const [buyerEmail, setBuyerEmail] = useState(null);
