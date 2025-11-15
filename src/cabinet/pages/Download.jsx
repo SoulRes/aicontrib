@@ -50,7 +50,8 @@ const Download = () => {
       </div>
     );
 
-  const isActivated = userData.activated;
+  const rawStatus = String(userData.status || "").toLowerCase();
+  const isActivated = rawStatus === "activated" || rawStatus === "active" || rawStatus === "paid";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-6">
