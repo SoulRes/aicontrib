@@ -136,20 +136,47 @@ const isActivated = rawStatus === "activated" || rawStatus === "active";
 
       {/* Referral list */}
       <div className="bg-black border border-gray-800 p-6 rounded-xl shadow-lg">
-        <h2 className="text-lg text-gray-400 mb-4">Your Referrals</h2>
+        <h2 className="text-xl text-gray-300 mb-4 font-semibold">Your Referrals</h2>
+
         {referrals.length > 0 ? (
-          <ul className="space-y-2">
-            {referrals.map((ref, i) => (
-              <li
-                key={i}
-                className="flex justify-between p-3 bg-gray-800 rounded-lg"
-              >
-                <span>{ref.id}</span>
-                <span className="text-green-400">
-                  {ref.status ?? "Pending"}
-                </span>
-              </li>
-            ))}
+          <ul className="space-y-3">
+            {referrals.map((ref) => {
+              const joined = ref.dateJoined
+                ? new Date(ref.dateJoined).toLocaleDateString()
+                : "Unknown";
+
+              return (
+                <li
+                  key={ref.id}
+                  className="flex flex-col md:flex-row md:items-center md:justify-between bg-gray-900 border border-gray-700 p-4 rounded-lg"
+                >
+                  {/* Left side */}
+                  <div>
+                    <p className="text-green-400 font-medium text-lg">{ref.email}</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Joined: <span className="text-gray-300">{joined}</span>
+                    </p>
+                  </div>
+
+                  {/* Right side */}
+                  <div className="mt-3 md:mt-0 flex items-center gap-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        ref.status === "Paid"
+                          ? "bg-green-600 text-white"
+                          : "bg-yellow-600 text-black"
+                      }`}
+                    >
+                      {ref.status}
+                    </span>
+
+                    <span className="text-green-400 font-semibold">
+                      +{ref.bonusEarned ?? 0} USDT
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-gray-500">No referrals yet.</p>
