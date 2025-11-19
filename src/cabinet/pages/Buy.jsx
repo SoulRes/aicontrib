@@ -44,7 +44,7 @@ function Buy() {
 
       if (data.valid) {
         setReferrerValid(true);
-        setPrice(15);
+        setPrice(450);
         setStatusMsg("✅ Referral valid! $50 discount applied.");
       } else {
         setReferrerValid(false);
