@@ -1,0 +1,20 @@
+{
+  "routes": [
+    {
+      "src": "/api/(check-referral|nowpayments|nowpayments-webhook)",
+      "continue": true
+    },
+    {
+      "src": "/success",
+      "continue": true
+    },
+    {
+      "src": "/failed",
+      "continue": true
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/block"
+    }
+  ]
+}
