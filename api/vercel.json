@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/geo-block.js": {
+      "runtime": "edge"
+    }
+  },
+  "routes": [
+    {
+      "src": "/((?!static|_next|assets|favicon.ico|robots.txt|manifest.json).*)",
+      "dest": "/api/geo-block.js"
+    }
+  ]
+}
