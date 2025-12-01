@@ -1,30 +1,17 @@
-export default function handler(req) {
-  const country = req.geo?.country || "unknown";
+export default function handler(req, res) {
+  const country = req.headers["x-vercel-ip-country"] || "unknown";
 
   if (country === "US") {
-    return new Response(
-      `
+    return res.status(403).send(`
       <html>
-        <head>
-          <title>Access Restricted</title>
-          <style>
-            body { background:black; color:white; text-align:center; padding:70px; font-family:Arial; }
-            h1 { color:#ff4444; }
-          </style>
-        </head>
-        <body>
+        <body style="background:black; color:white; font-family:sans-serif; text-align:center; padding-top:50px;">
           <h1>Access Restricted</h1>
-          <p>Our service is not available in your region.</p>
+          <p>Our service is not available in the United States.</p>
         </body>
       </html>
-      `,
-      {
-        status: 451,
-        headers: { "Content-Type": "text/html" }
-      }
-    );
+    `);
   }
 
-  // Let request continue normally
-  return new Response(null, { status: 200 });
+  // allow non-US traffic
+  return res.status(200).end();
 }

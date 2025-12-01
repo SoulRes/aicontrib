@@ -1,13 +1,24 @@
 {
-  "functions": {
-    "api/geo-block.js": {
-      "runtime": "edge"
-    }
-  },
   "routes": [
     {
-      "src": "/((?!static|_next|assets|favicon.ico|robots.txt|manifest.json).*)",
+      "src": "/installer-windows\\.exe",
+      "headers": { "Content-Disposition": "attachment" },
+      "continue": true
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/.*",
+      "has": [
+        { "type": "header", "key": "x-vercel-ip-country", "value": "US" }
+      ],
       "dest": "/api/geo-block.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
