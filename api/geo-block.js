@@ -1,17 +1,10 @@
-export default function handler(req, res) {
-  const country = req.headers["x-vercel-ip-country"] || "unknown";
-
-  if (country === "US") {
-    return res.status(403).send(`
-      <html>
-        <body style="background:black; color:white; font-family:sans-serif; text-align:center; padding-top:50px;">
-          <h1>Access Restricted</h1>
-          <p>Our service is not available in the United States.</p>
-        </body>
-      </html>
-    `);
-  }
-
-  // allow non-US traffic
-  return res.status(200).end();
-}
+module.exports = (req, res) => {
+  res.status(403).send(`
+    <h1 style="font-family:Arial; color:red; text-align:center;">
+      Access Denied
+    </h1>
+    <p style="text-align:center; color:#666;">
+      Our service is not available in the United States.
+    </p>
+  `);
+};
